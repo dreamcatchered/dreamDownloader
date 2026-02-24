@@ -1,0 +1,1551 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Универсальный Загрузчик Медиа</title>
+    <link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='90'>⬇️</text></svg>">
+    
+    <!-- Fonts: Inter -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    
+    <!-- Icons: Phosphor Icons -->
+    <script src="https://unpkg.com/@phosphor-icons/web"></script>
+    
+    <!-- DPlayer - Best Universal Player -->
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/dplayer@1.27.1/dist/DPlayer.min.css">
+    <script src="https://cdn.jsdelivr.net/npm/dplayer@1.27.1/dist/DPlayer.min.js"></script>
+
+    <style>
+        :root {
+            --bg-body: #ffffff;
+            --bg-sidebar: #f9f9f9;
+            --bg-input: #f0f0f0;
+            --text-main: #111111;
+            --text-secondary: #666666;
+            --border-color: #e5e5e5;
+            --shadow-sm: 0 1px 2px rgba(0,0,0,0.05);
+            --shadow-md: 0 4px 12px rgba(0,0,0,0.08);
+            --font-family: 'Inter', sans-serif;
+            --radius-lg: 16px;
+            --radius-md: 12px;
+            --max-width: 800px;
+            --accent-color: #000000;
+        }
+
+        * {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+            outline: none;
+        }
+
+        body {
+            font-family: var(--font-family);
+            background-color: var(--bg-body);
+            color: var(--text-main);
+            height: 100vh;
+            display: flex;
+            overflow: hidden;
+        }
+
+        /* --- SIDEBAR --- */
+        aside {
+            width: 280px;
+            background-color: var(--bg-sidebar);
+            border-right: 1px solid var(--border-color);
+            display: flex;
+            flex-direction: column;
+            padding: 16px;
+            overflow-y: auto;
+        }
+
+        .sidebar-header {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            margin-bottom: 20px;
+        }
+
+        .sidebar-title {
+            font-weight: 600;
+            font-size: 14px;
+            color: var(--text-secondary);
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+        }
+
+        .clear-history-btn {
+            background: none;
+            border: none;
+            color: var(--text-secondary);
+            cursor: pointer;
+            font-size: 12px;
+            padding: 4px 8px;
+            border-radius: 4px;
+            transition: background 0.2s;
+        }
+
+        .clear-history-btn:hover {
+            background: rgba(0,0,0,0.05);
+        }
+
+        .history-list {
+            flex: 1;
+            overflow-y: auto;
+        }
+
+        .history-item {
+            background: white;
+            border: 1px solid var(--border-color);
+            border-radius: var(--radius-md);
+            padding: 12px;
+            margin-bottom: 8px;
+            cursor: pointer;
+            transition: all 0.2s;
+            position: relative;
+        }
+
+        .history-item:hover {
+            border-color: #999;
+            box-shadow: var(--shadow-sm);
+        }
+
+        .history-item-header {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            margin-bottom: 6px;
+        }
+
+        .history-item-name {
+            font-size: 13px;
+            font-weight: 500;
+            flex: 1;
+            white-space: nowrap;
+            overflow: hidden;
+            text-overflow: ellipsis;
+        }
+
+        .history-item-delete {
+            width: 20px;
+            height: 20px;
+            border-radius: 4px;
+            border: none;
+            background: transparent;
+            color: var(--text-secondary);
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            opacity: 0;
+            transition: all 0.2s;
+        }
+
+        .history-item:hover .history-item-delete {
+            opacity: 1;
+        }
+
+        .history-item-delete:hover {
+            background: #fee;
+            color: #d32f2f;
+        }
+
+        .history-item-meta {
+            font-size: 11px;
+            color: var(--text-secondary);
+        }
+
+        .history-item-preview {
+            width: 100%;
+            height: 80px;
+            border-radius: 6px;
+            margin-top: 8px;
+            object-fit: cover;
+            background: #f0f0f0;
+        }
+
+        /* --- MAIN AREA --- */
+        main {
+            flex: 1;
+            display: flex;
+            flex-direction: column;
+            overflow: hidden;
+        }
+
+        header {
+            height: 60px;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            padding: 0 24px;
+            border-bottom: 1px solid var(--border-color);
+            background: rgba(255, 255, 255, 0.8);
+            backdrop-filter: blur(10px);
+            z-index: 10;
+        }
+
+        .logo {
+            font-weight: 700;
+            font-size: 18px;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+
+        .header-actions {
+            display: flex;
+            gap: 16px;
+            align-items: center;
+        }
+
+        .mobile-menu-btn {
+            display: none;
+            background: none;
+            border: none;
+            font-size: 24px;
+            cursor: pointer;
+            color: var(--text-main);
+            padding: 8px;
+        }
+
+        .header-link {
+            color: var(--text-secondary);
+            text-decoration: none;
+            font-size: 14px;
+            transition: color 0.2s;
+        }
+
+        .header-link:hover {
+            color: var(--text-main);
+        }
+
+        .content-area {
+            flex: 1;
+            overflow-y: auto;
+            padding: 20px;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+        }
+
+        .content-area.has-content {
+            justify-content: flex-start;
+            padding-top: 40px;
+        }
+
+        .container {
+            width: 100%;
+            max-width: var(--max-width);
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+        }
+
+        .hero-title {
+            font-size: 32px;
+            font-weight: 600;
+            margin-bottom: 12px;
+            text-align: center;
+        }
+
+        .hero-subtitle {
+            font-size: 16px;
+            color: var(--text-secondary);
+            margin-bottom: 40px;
+            text-align: center;
+        }
+
+        .input-wrapper {
+            width: 100%;
+            position: relative;
+            z-index: 5;
+        }
+
+        .input-box {
+            width: 100%;
+            background: var(--bg-input);
+            border-radius: 30px;
+            padding: 8px 16px;
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            box-shadow: var(--shadow-md);
+            border: 1px solid transparent;
+            transition: all 0.2s;
+            height: 56px;
+        }
+
+        .input-box:focus-within {
+            background: #fff;
+            border-color: #ccc;
+            box-shadow: 0 8px 24px rgba(0,0,0,0.12);
+        }
+
+        .input-box input {
+            flex: 1;
+            background: transparent;
+            border: none;
+            font-family: inherit;
+            font-size: 16px;
+            color: var(--text-main);
+            height: 100%;
+        }
+
+        .action-btn {
+            width: 40px;
+            height: 40px;
+            border-radius: 50%;
+            border: none;
+            background: var(--accent-color);
+            color: white;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            cursor: pointer;
+            transition: opacity 0.2s, transform 0.1s;
+            font-size: 20px;
+        }
+
+        .action-btn:hover {
+            opacity: 0.9;
+        }
+        
+        .action-btn:active {
+            transform: scale(0.95);
+        }
+
+        .action-btn:disabled {
+            background: #ccc;
+            cursor: not-allowed;
+        }
+
+        .supported-platforms {
+            display: flex;
+            gap: 16px;
+            margin-top: 32px;
+            color: var(--text-secondary);
+            flex-wrap: wrap;
+            justify-content: center;
+        }
+        
+        .platform-icon {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            gap: 4px;
+            font-size: 12px;
+        }
+
+        .platform-icon i {
+            font-size: 24px;
+        }
+
+        /* Telegram Bot Banner Styles */
+        .telegram-banner {
+            width: 100%;
+            background: linear-gradient(135deg, #0088cc 0%, #005f99 100%);
+            border-radius: var(--radius-lg);
+            padding: 24px;
+            margin: 32px 0;
+            color: white;
+            position: relative;
+            overflow: hidden;
+            box-shadow: 0 8px 32px rgba(0, 136, 204, 0.3);
+            transition: transform 0.3s ease, box-shadow 0.3s ease;
+        }
+
+        .telegram-banner:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 12px 40px rgba(0, 136, 204, 0.4);
+        }
+
+        .telegram-banner::before {
+            content: '';
+            position: absolute;
+            top: -50%;
+            right: -50%;
+            width: 200%;
+            height: 200%;
+            background: radial-gradient(circle, rgba(255,255,255,0.1) 0%, transparent 70%);
+            animation: float 6s ease-in-out infinite;
+        }
+
+        @keyframes float {
+            0%, 100% { transform: translate(0, 0) rotate(0deg); }
+            50% { transform: translate(-20px, -20px) rotate(180deg); }
+        }
+
+        .telegram-banner-content {
+            position: relative;
+            z-index: 2;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            gap: 20px;
+        }
+
+        .telegram-banner-text {
+            flex: 1;
+        }
+
+        .telegram-banner-title {
+            font-size: 20px;
+            font-weight: 600;
+            margin-bottom: 8px;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+
+        .telegram-banner-subtitle {
+            font-size: 14px;
+            opacity: 0.9;
+            line-height: 1.4;
+            margin-bottom: 16px;
+        }
+
+        .telegram-banner-features {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 8px;
+            margin-bottom: 16px;
+        }
+
+        .telegram-feature {
+            background: rgba(255, 255, 255, 0.15);
+            padding: 4px 8px;
+            border-radius: 12px;
+            font-size: 12px;
+            backdrop-filter: blur(10px);
+        }
+
+        .telegram-banner-button {
+            display: inline-flex;
+            align-items: center;
+            gap: 8px;
+            background: white;
+            color: #0088cc;
+            padding: 10px 16px;
+            border-radius: 20px;
+            text-decoration: none;
+            font-weight: 600;
+            font-size: 14px;
+            transition: all 0.2s;
+        }
+
+        .telegram-banner-button:hover {
+            transform: scale(1.05);
+            box-shadow: 0 4px 16px rgba(255, 255, 255, 0.3);
+        }
+
+        .telegram-banner-icon {
+            font-size: 48px;
+            opacity: 0.8;
+            animation: pulse 2s infinite;
+        }
+
+        @keyframes pulse {
+            0%, 100% { transform: scale(1); opacity: 0.8; }
+            50% { transform: scale(1.1); opacity: 1; }
+        }
+
+        @media (max-width: 768px) {
+            .telegram-banner-content {
+                flex-direction: column;
+                text-align: center;
+            }
+            
+            .telegram-banner-icon {
+                font-size: 36px;
+            }
+            
+            .telegram-banner-title {
+                font-size: 18px;
+                justify-content: center;
+            }
+            
+            .telegram-banner-features {
+                justify-content: center;
+            }
+        }
+
+        #results-area {
+            width: 100%;
+            max-width: var(--max-width);
+            margin-top: 40px;
+            display: flex;
+            flex-direction: column;
+            gap: 20px;
+            padding-bottom: 60px;
+        }
+
+        .result-card {
+            background: white;
+            border: 1px solid var(--border-color);
+            border-radius: var(--radius-md);
+            padding: 20px;
+            display: flex;
+            gap: 20px;
+            animation: slideUp 0.4s ease forwards;
+            box-shadow: var(--shadow-sm);
+            cursor: pointer;
+            transition: all 0.2s;
+        }
+
+        .result-card:hover {
+            border-color: #999;
+            box-shadow: var(--shadow-md);
+        }
+
+        @keyframes slideUp {
+            from { opacity: 0; transform: translateY(20px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+
+        .file-preview {
+            width: 120px;
+            height: 120px;
+            border-radius: 12px;
+            object-fit: cover;
+            background: #f0f0f0;
+            flex-shrink: 0;
+        }
+
+        .file-info {
+            flex: 1;
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            overflow: hidden;
+        }
+
+        .file-name {
+            font-weight: 600;
+            font-size: 16px;
+            margin-bottom: 4px;
+            white-space: nowrap;
+            overflow: hidden;
+            text-overflow: ellipsis;
+        }
+
+        .file-meta {
+            font-size: 13px;
+            color: var(--text-secondary);
+            margin-bottom: 12px;
+        }
+
+        .file-actions {
+            display: flex;
+            gap: 8px;
+            flex-wrap: wrap;
+        }
+
+        .download-btn, .telegram-btn {
+            display: inline-flex;
+            align-items: center;
+            gap: 8px;
+            background: var(--accent-color);
+            color: white;
+            text-decoration: none;
+            padding: 10px 20px;
+            border-radius: 8px;
+            font-weight: 500;
+            font-size: 14px;
+            transition: background 0.2s;
+            border: none;
+            cursor: pointer;
+        }
+
+        .download-btn:hover, .telegram-btn:hover {
+            background: #333;
+        }
+
+        .telegram-btn {
+            background: #0088cc;
+        }
+
+        .telegram-btn:hover {
+            background: #006ba3;
+        }
+
+        .loader {
+            display: none;
+            margin-top: 20px;
+        }
+        
+        .loader span {
+            display: inline-block;
+            width: 8px;
+            height: 8px;
+            background-color: var(--text-main);
+            border-radius: 50%;
+            animation: bounce 1.4s infinite ease-in-out both;
+            margin: 0 2px;
+        }
+
+        .loader span:nth-child(1) { animation-delay: -0.32s; }
+        .loader span:nth-child(2) { animation-delay: -0.16s; }
+
+        @keyframes bounce {
+            0%, 80%, 100% { transform: scale(0); }
+            40% { transform: scale(1); }
+        }
+
+        .error-msg {
+            color: #d32f2f;
+            background: #ffebee;
+            padding: 12px;
+            border-radius: 8px;
+            margin-top: 20px;
+            font-size: 14px;
+            display: none;
+            text-align: center;
+            width: 100%;
+        }
+
+        /* --- PLAYER MODAL --- */
+        .player-modal {
+            display: none;
+            position: fixed;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background: rgba(0,0,0,0.95);
+            z-index: 1000;
+            align-items: center;
+            justify-content: center;
+            padding: 20px;
+        }
+
+        .player-modal.active {
+            display: flex;
+        }
+
+        .player-container {
+            width: 100%;
+            max-width: 95vw;
+            max-height: 90vh;
+            position: relative;
+        }
+
+        #dplayer-container {
+            border-radius: 12px;
+            overflow: hidden;
+            max-width: 95vw;
+            max-height: 90vh;
+            width: 100%;
+            position: relative;
+        }
+
+        .dplayer {
+            max-width: 100%;
+            max-height: 90vh;
+            width: 100% !important;
+        }
+
+        .dplayer-video {
+            max-width: 100%;
+            max-height: 90vh;
+            width: 100% !important;
+            height: auto !important;
+        }
+
+        @media (max-width: 768px) {
+            .player-container,
+            #dplayer-container {
+                max-width: 100vw;
+                max-height: 85vh;
+            }
+            
+            .dplayer {
+                max-height: 85vh;
+            }
+        }
+
+        .player-close {
+            position: absolute;
+            top: -40px;
+            right: 0;
+            background: rgba(255,255,255,0.2);
+            border: none;
+            color: white;
+            width: 36px;
+            height: 36px;
+            border-radius: 50%;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 20px;
+            transition: background 0.2s;
+        }
+
+        .player-close:hover {
+            background: rgba(255,255,255,0.3);
+        }
+
+        #dplayer-container {
+            border-radius: 12px;
+            overflow: hidden;
+            max-width: 100%;
+            max-height: 90vh;
+        }
+
+        .dplayer {
+            max-width: 100%;
+            max-height: 90vh;
+        }
+
+        .dplayer-video {
+            max-width: 100%;
+            max-height: 90vh;
+            width: auto !important;
+            height: auto !important;
+        }
+
+        @media (max-width: 768px) {
+            .mobile-menu-btn {
+                display: block;
+            }
+            aside {
+                position: fixed;
+                left: -280px;
+                height: 100%;
+                z-index: 100;
+                box-shadow: 2px 0 10px rgba(0,0,0,0.1);
+                transition: transform 0.3s;
+                top: 60px;
+            }
+            aside.open {
+                transform: translateX(280px);
+            }
+            .sidebar-overlay {
+                display: none;
+                position: fixed;
+                top: 60px;
+                left: 0;
+                right: 0;
+                bottom: 0;
+                background: rgba(0,0,0,0.5);
+                z-index: 99;
+            }
+            .sidebar-overlay.active {
+                display: block;
+            }
+            .hero-title { font-size: 24px; }
+            .result-card { 
+                flex-direction: column; 
+                padding: 16px;
+            }
+            .file-preview { 
+                width: 100%; 
+                height: 200px; 
+            }
+            .history-item {
+                padding: 10px;
+            }
+            .history-item-preview {
+                height: 60px;
+            }
+        }
+    </style>
+</head>
+<body>
+
+    <!-- Sidebar Overlay for mobile -->
+    <div class="sidebar-overlay" id="sidebar-overlay"></div>
+
+    <!-- Sidebar -->
+    <aside id="sidebar">
+        <div class="sidebar-header">
+            <div class="sidebar-title">История</div>
+            <button class="clear-history-btn" id="clear-history-btn" style="display: none;">Очистить</button>
+        </div>
+        <div class="history-list" id="history-list">
+            <div style="text-align: center; color: var(--text-secondary); padding: 20px; font-size: 14px;">
+                История пуста
+            </div>
+        </div>
+    </aside>
+
+    <!-- Main Content -->
+    <main>
+        <header>
+            <div style="display: flex; align-items: center; gap: 12px;">
+                <button class="mobile-menu-btn" id="mobile-menu-btn">
+                    <i class="ph ph-list"></i>
+                </button>
+                <div class="logo">
+                    <i class="ph-fill ph-download-simple"></i>
+                    <span>Загрузчик</span>
+                </div>
+            </div>
+            <div class="header-actions">
+                <a href="/docs" class="header-link">Документация API</a>
+            </div>
+        </header>
+
+        <div class="content-area" id="content-area">
+            <div class="container" id="hero-container">
+                <h1 class="hero-title">Простая Загрузка Медиа</h1>
+                <p class="hero-subtitle">Вставьте ссылку из YouTube, Instagram, TikTok или SoundCloud</p>
+
+                <!-- Telegram Bot Banner -->
+                <div class="telegram-banner">
+                    <div class="telegram-banner-content">
+                        <div class="telegram-banner-text">
+                            <div class="telegram-banner-title">
+                                <i class="ph-fill ph-paper-plane-tilt"></i>
+                                @dreamdownload_bot
+                            </div>
+                            <div class="telegram-banner-subtitle">
+                                Универсальный Telegram-бот для скачивания медиа. Отправляйте голосовые, видео, аудио и получайте краткое содержание!
+                            </div>
+                            <div class="telegram-banner-features">
+                                <span class="telegram-feature">🎵 Голосовые в текст</span>
+                                <span class="telegram-feature">📹 Видео скачивание</span>
+                                <span class="telegram-feature">🎵 Аудио обработка</span>
+                                <span class="telegram-feature">📝 Краткое содержание</span>
+                                <span class="telegram-feature">⚡ Быстрая обработка</span>
+                            </div>
+                            <a href="https://t.me/dreamdownload_bot" target="_blank" class="telegram-banner-button">
+                                <i class="ph ph-arrow-right"></i>
+                                Попробовать бота
+                            </a>
+                        </div>
+                        <div class="telegram-banner-icon">
+                            <i class="ph-fill ph-paper-plane-tilt"></i>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="input-wrapper">
+                    <div class="input-box">
+                        <i class="ph ph-link" style="font-size: 20px; color: #999;"></i>
+                        <input type="text" id="url-input" placeholder="Вставьте ссылку здесь..." autocomplete="off">
+                        <button class="action-btn" id="download-btn" disabled>
+                            <i class="ph-bold ph-arrow-right"></i>
+                        </button>
+                    </div>
+                </div>
+
+                <div class="error-msg" id="error-msg"></div>
+
+                <div class="loader" id="loader">
+                    <span></span><span></span><span></span>
+                </div>
+
+                <div class="supported-platforms" id="platforms">
+                    <div class="platform-icon">
+                        <i class="ph-fill ph-youtube-logo"></i>
+                        <span>YouTube</span>
+                    </div>
+                    <div class="platform-icon">
+                        <i class="ph-fill ph-instagram-logo"></i>
+                        <span>Instagram</span>
+                    </div>
+                    <div class="platform-icon">
+                        <i class="ph-fill ph-tiktok-logo"></i>
+                        <span>TikTok</span>
+                    </div>
+                    <div class="platform-icon">
+                        <i class="ph-fill ph-soundcloud-logo"></i>
+                        <span>SoundCloud</span>
+                    </div>
+                </div>
+            </div>
+
+            <div id="results-area"></div>
+        </div>
+    </main>
+
+    <!-- Player Modal -->
+    <div class="player-modal" id="player-modal">
+        <div class="player-container">
+            <button class="player-close" id="player-close">
+                <i class="ph ph-x"></i>
+            </button>
+            <div id="dplayer-container"></div>
+        </div>
+    </div>
+
+    <script>
+        const input = document.getElementById('url-input');
+        const btn = document.getElementById('download-btn');
+        const contentArea = document.getElementById('content-area');
+        const heroContainer = document.getElementById('hero-container');
+        const resultsArea = document.getElementById('results-area');
+        const loader = document.getElementById('loader');
+        const errorMsg = document.getElementById('error-msg');
+        const platforms = document.getElementById('platforms');
+        const historyList = document.getElementById('history-list');
+        const clearHistoryBtn = document.getElementById('clear-history-btn');
+        const playerModal = document.getElementById('player-modal');
+        const playerClose = document.getElementById('player-close');
+        const playerContainer = document.getElementById('dplayer-container');
+        const mobileMenuBtn = document.getElementById('mobile-menu-btn');
+        const sidebarOverlay = document.getElementById('sidebar-overlay');
+        let playerInstance = null;
+
+        // Mobile menu toggle
+        mobileMenuBtn.addEventListener('click', () => {
+            sidebar.classList.toggle('open');
+            sidebarOverlay.classList.toggle('active');
+        });
+
+        sidebarOverlay.addEventListener('click', () => {
+            sidebar.classList.remove('open');
+            sidebarOverlay.classList.remove('active');
+        });
+
+        // Load history on page load
+        loadHistory();
+
+        // Enable button on input
+        input.addEventListener('input', () => {
+            btn.disabled = input.value.trim().length === 0;
+        });
+
+        input.addEventListener('keydown', (e) => {
+            if (e.key === 'Enter' && !btn.disabled) {
+                startDownload();
+            }
+        });
+
+        btn.addEventListener('click', startDownload);
+        
+        playerClose.addEventListener('click', () => {
+            closePlayer();
+        });
+
+        playerModal.addEventListener('click', (e) => {
+            if (e.target === playerModal) {
+                closePlayer();
+            }
+        });
+
+        function closePlayer() {
+            playerModal.classList.remove('active');
+            if (playerInstance) {
+                playerInstance.destroy();
+                playerInstance = null;
+                playerContainer.innerHTML = '';
+            }
+        }
+
+        async function startDownload() {
+            const url = input.value.trim();
+            if (!url) return;
+
+            btn.disabled = true;
+            loader.style.display = 'block';
+            errorMsg.style.display = 'none';
+            platforms.style.display = 'none';
+            contentArea.classList.add('has-content');
+
+            try {
+                const response = await fetch('/download', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ url: url })
+                });
+
+                const data = await response.json();
+
+                if (data.status === 'success') {
+                    // Check if carousel (from data or files count)
+                    const isCarousel = data.is_carousel || (data.files && data.files.length > 1 && data.carousel_count > 1);
+                    
+                    if (data.cached) {
+                        // File from cache - show bot link
+                        if (isCarousel) {
+                            // Carousel - show as one card
+                            addCarouselCard(data.files[0], true, data);
+                        } else {
+                            data.files.forEach(file => {
+                                addResultCard(file, true); // isCached = true
+                            });
+                        }
+                        // Show info message (not error)
+                        errorMsg.style.background = '#e3f2fd';
+                        errorMsg.style.color = '#1976d2';
+                        errorMsg.textContent = '✅ Файл найден в кэше. Используйте ссылку для открытия в боте.';
+                        errorMsg.style.display = 'block';
+                        setTimeout(() => {
+                            errorMsg.style.display = 'none';
+                            errorMsg.style.background = '#ffebee';
+                            errorMsg.style.color = '#d32f2f';
+                        }, 5000);
+                    } else {
+                        // New download
+                        if (isCarousel) {
+                            // Carousel - show as one card (use first file for display)
+                            addCarouselCard(data.files[0], false, data);
+                        } else {
+                            data.files.forEach(file => {
+                                addResultCard(file, false);
+                            });
+                        }
+                        errorMsg.style.display = 'none';
+                    }
+                    input.value = '';
+                    // Save to history immediately
+                    setTimeout(() => {
+                        saveHistoryToLocalStorage();
+                        loadHistory();
+                    }, 500);
+                } else {
+                    showError(data.message || 'Ошибка загрузки');
+                }
+            } catch (e) {
+                showError('Ошибка сети. Попробуйте еще раз.');
+                console.error(e);
+            } finally {
+                loader.style.display = 'none';
+                btn.disabled = false;
+            }
+        }
+
+        function showError(msg) {
+            errorMsg.textContent = msg;
+            errorMsg.style.display = 'block';
+        }
+
+        function getFileType(filename) {
+            const ext = filename.split('.').pop().toLowerCase();
+            if (['mp4', 'mov', 'avi', 'webm'].includes(ext)) return 'video';
+            if (['mp3', 'wav', 'ogg', 'm4a', 'aac'].includes(ext)) return 'audio';
+            return 'other';
+        }
+
+        function getPreviewUrl(fileUrl, type) {
+            if (!fileUrl) return null;
+            
+            // Ensure HTTPS
+            let secureUrl = fileUrl;
+            if (fileUrl.startsWith('http://')) {
+                secureUrl = fileUrl.replace('http://', 'https://');
+            } else if (fileUrl.startsWith('//')) {
+                secureUrl = 'https:' + fileUrl;
+            } else if (!fileUrl.startsWith('http')) {
+                // Relative URL - make it absolute with HTTPS
+                secureUrl = window.location.origin + (fileUrl.startsWith('/') ? fileUrl : '/' + fileUrl);
+            }
+            
+            if (type === 'video') {
+                // For video, try to get thumbnail
+                // If URL has query params, add &t=1, otherwise add ?t=1
+                if (secureUrl.includes('?')) {
+                    return secureUrl + '&t=1';
+                }
+                return secureUrl + '?t=1';
+            }
+            if (type === 'audio') {
+                // For audio, return null (no preview)
+                return null;
+            }
+            return secureUrl;
+        }
+
+        function addCarouselCard(file, isCached, data) {
+            // Group carousel files into one card
+            const card = document.createElement('div');
+            card.className = 'result-card';
+            card.style.position = 'relative';
+            
+            const carouselId = file.id || data.cache_id || 'carousel_' + Date.now();
+            const carouselCount = data.carousel_count || (data.files ? data.files.length : 1);
+            card.dataset.fileId = carouselId;
+            card.dataset.isCarousel = 'true';
+            
+            const totalSize = file.size || 0;
+            const sizeMB = totalSize > 0 ? (totalSize / (1024 * 1024)).toFixed(2) : 'Кэш';
+            const type = getFileType(file.filename || 'cached');
+            const mediaType = file.media_type || data.media_type || type;
+            
+            // Show preview - try to get from first file if available
+            let previewHtml = '';
+            const previewUrl = file.url || (data.files && data.files[0] && data.files[0].url);
+            
+            if (isCached && file.bot_link) {
+                // For cached, show icon or try to get preview from Telegram
+                if (mediaType === 'photo' && previewUrl) {
+                    previewHtml = `<img src="${previewUrl}" class="file-preview" onerror="this.style.display='none'; this.nextElementSibling.style.display='flex';">`;
+                    previewHtml += `<div class="file-preview" style="display: none; align-items: center; justify-content: center; font-size: 48px; color: #0088cc; background: #e3f2fd;"><i class="ph-fill ph-paper-plane-tilt"></i></div>`;
+                } else {
+                    previewHtml = `<div class="file-preview" style="display: flex; align-items: center; justify-content: center; font-size: 48px; color: #0088cc; background: #e3f2fd;"><i class="ph-fill ph-paper-plane-tilt"></i></div>`;
+                }
+            } else if (previewUrl) {
+                if (type === 'video' || type === 'audio') {
+                    const securePreviewUrl = getPreviewUrl(previewUrl, type);
+                    previewHtml = `<img src="${securePreviewUrl || previewUrl}" class="file-preview" onerror="this.style.display='none'">`;
+                } else if (mediaType === 'photo') {
+                    previewHtml = `<img src="${previewUrl}" class="file-preview" onerror="this.style.display='none'">`;
+                } else {
+                    previewHtml = `<div class="file-preview" style="display: flex; align-items: center; justify-content: center; font-size: 32px; color: #999;"><i class="ph-fill ph-file"></i></div>`;
+                }
+            } else {
+                previewHtml = `<div class="file-preview" style="display: flex; align-items: center; justify-content: center; font-size: 48px; color: #0088cc; background: #e3f2fd;"><i class="ph-fill ph-images"></i></div>`;
+            }
+            
+            // Carousel badge
+            const carouselBadge = `<div style="position: absolute; top: 8px; right: 8px; background: rgba(0,0,0,0.7); color: white; padding: 4px 8px; border-radius: 4px; font-size: 11px; font-weight: 600; z-index: 10;">
+                <i class="ph ph-images"></i> ${carouselCount} файлов
+            </div>`;
+            
+            let actionsHtml = '';
+            const botLink = file.bot_link || data.bot_link || (data.cache_id ? `https://t.me/${data.bot_username || 'bot'}?start=file_${data.cache_id}` : null);
+            
+            if (isCached && botLink) {
+                actionsHtml = `
+                    <a href="${botLink}" target="_blank" class="telegram-btn" onclick="event.stopPropagation();">
+                        <i class="ph-fill ph-paper-plane-tilt"></i> Открыть в боте
+                    </a>
+                `;
+            } else {
+                if (file.telegram_file_id || botLink) {
+                    actionsHtml = `
+                        <a href="${file.url || '#'}" class="download-btn" download onclick="event.stopPropagation();">
+                            <i class="ph-bold ph-download-simple"></i> Скачать все
+                        </a>
+                        <a href="${botLink || '#'}" target="_blank" class="telegram-btn" onclick="event.stopPropagation();">
+                            <i class="ph-fill ph-paper-plane-tilt"></i> В Telegram
+                        </a>
+                    `;
+                } else {
+                    actionsHtml = `
+                        <a href="${file.url || '#'}" class="download-btn" download onclick="event.stopPropagation();">
+                            <i class="ph-bold ph-download-simple"></i> Скачать все
+                        </a>
+                        <button class="telegram-btn" onclick="uploadToTelegram('${carouselId}', event)">
+                            <i class="ph-fill ph-paper-plane-tilt"></i> В Telegram
+                        </button>
+                    `;
+                }
+            }
+            
+            card.innerHTML = `
+                ${previewHtml}
+                ${carouselBadge}
+                <div class="file-info">
+                    <div class="file-name">Карусель: ${carouselCount} файлов</div>
+                    <div class="file-meta">
+                        ${sizeMB} ${totalSize > 0 ? 'МБ' : ''} • ${carouselCount} файлов
+                        ${file.telegram_file_id ? '<br><span style="font-size: 11px; color: #0088cc;">✓ В Telegram</span>' : ''}
+                    </div>
+                    <div class="file-actions">
+                        ${actionsHtml}
+                    </div>
+                </div>
+            `;
+            
+            // Store data
+            card.dataset.cacheId = data.cache_id || '';
+            card.dataset.botLink = botLink || '';
+            card.dataset.carouselCount = carouselCount;
+            
+            if (!isCached && file.url) {
+                card.addEventListener('click', (e) => {
+                    if (e.target.closest('.download-btn') || e.target.closest('.telegram-btn')) return;
+                    // Open first file in player
+                    openPlayer(file.url, type);
+                });
+            } else if (botLink) {
+                card.addEventListener('click', (e) => {
+                    if (e.target.closest('.telegram-btn')) return;
+                    window.open(botLink, '_blank');
+                });
+            }
+            
+            // Create results container if it doesn't exist
+            let resultsContainer = document.getElementById('results-container');
+            if (!resultsContainer) {
+                resultsContainer = document.createElement('div');
+                resultsContainer.id = 'results-container';
+                resultsContainer.className = 'results-container';
+                resultsArea.appendChild(resultsContainer);
+            }
+            resultsContainer.insertBefore(card, resultsContainer.firstChild);
+        }
+
+        function addResultCard(file, isCached = false) {
+            const card = document.createElement('div');
+            card.className = 'result-card';
+            if (!file.id) {
+                file.id = 'file_' + Date.now() + '_' + Math.random().toString(36).substr(2, 9);
+            }
+            card.dataset.fileId = file.id;
+            card.dataset.fileUrl = file.url || file.bot_link || '#';
+            card.dataset.fileType = getFileType(file.filename || 'cached');
+
+            const type = getFileType(file.filename || 'cached');
+            const sizeMB = file.size > 0 ? (file.size / (1024 * 1024)).toFixed(2) : 'Кэш';
+            const ext = file.filename ? file.filename.split('.').pop().toUpperCase() : 'TG';
+            
+            let previewHtml = '';
+            if (isCached && file.bot_link) {
+                // Cached file - show bot icon
+                previewHtml = `<div class="file-preview" style="display: flex; align-items: center; justify-content: center; font-size: 48px; color: #0088cc; background: #e3f2fd;"><i class="ph-fill ph-paper-plane-tilt"></i></div>`;
+            } else if (type === 'video' || type === 'audio') {
+                const previewUrl = getPreviewUrl(file.url, type);
+                previewHtml = `<img src="${previewUrl || file.url}" class="file-preview" onerror="this.style.display='none'">`;
+            } else {
+                previewHtml = `<div class="file-preview" style="display: flex; align-items: center; justify-content: center; font-size: 32px; color: #999;"><i class="ph-fill ph-file"></i></div>`;
+            }
+
+            let actionsHtml = '';
+            if (isCached && file.bot_link) {
+                // Cached file - show bot link button
+                actionsHtml = `
+                    <a href="${file.bot_link}" target="_blank" class="telegram-btn" onclick="event.stopPropagation();">
+                        <i class="ph-fill ph-paper-plane-tilt"></i> Открыть в боте
+                    </a>
+                `;
+            } else {
+                // Regular file - show both download and telegram
+                if (file.telegram_file_id || file.bot_link) {
+                    // Has telegram file_id - show bot link
+                    const botLink = file.bot_link || '#';
+                    actionsHtml = `
+                        <a href="${file.url}" class="download-btn" download onclick="event.stopPropagation();">
+                            <i class="ph-bold ph-download-simple"></i> Скачать
+                        </a>
+                        <a href="${botLink}" target="_blank" class="telegram-btn" onclick="event.stopPropagation();">
+                            <i class="ph-fill ph-paper-plane-tilt"></i> В Telegram
+                        </a>
+                    `;
+                } else {
+                    // No telegram file_id yet - show upload button
+                    actionsHtml = `
+                        <a href="${file.url}" class="download-btn" download onclick="event.stopPropagation();">
+                            <i class="ph-bold ph-download-simple"></i> Скачать
+                        </a>
+                        <button class="telegram-btn" onclick="uploadToTelegram('${file.id}', event)">
+                            <i class="ph-fill ph-paper-plane-tilt"></i> В Telegram
+                        </button>
+                    `;
+                }
+            }
+
+            card.innerHTML = `
+                ${previewHtml}
+                <div class="file-info">
+                    <div class="file-name">${file.filename || 'Файл из кэша'}</div>
+                    <div class="file-meta">
+                        ${sizeMB} ${file.size > 0 ? 'МБ' : ''} • ${ext}
+                        ${file.telegram_file_id ? '<br><span style="font-size: 11px; color: #0088cc;">✓ В Telegram</span>' : ''}
+                    </div>
+                    <div class="file-actions">
+                        ${actionsHtml}
+                    </div>
+                </div>
+            `;
+
+            if (!isCached) {
+                card.addEventListener('click', (e) => {
+                    if (e.target.closest('.download-btn') || e.target.closest('.telegram-btn')) return;
+                    openPlayer(file.url, type);
+                });
+            }
+
+            // Create results container if it doesn't exist
+            let resultsContainer = document.getElementById('results-container');
+            if (!resultsContainer) {
+                resultsContainer = document.createElement('div');
+                resultsContainer.id = 'results-container';
+                resultsContainer.className = 'results-container';
+                resultsArea.appendChild(resultsContainer);
+            }
+            resultsContainer.insertBefore(card, resultsContainer.firstChild);
+        }
+
+        function openPlayer(url, type) {
+            if (type === 'other') {
+                window.open(url, '_blank');
+                return;
+            }
+
+            closePlayer(); // Clean up previous player
+
+            playerModal.classList.add('active');
+            
+            // Create new container for player
+            const container = document.createElement('div');
+            container.id = 'dplayer-' + Date.now();
+            playerContainer.appendChild(container);
+
+            setTimeout(() => {
+                // Ensure HTTPS URL
+                let secureUrl = url;
+                if (url.startsWith('http://')) {
+                    secureUrl = url.replace('http://', 'https://');
+                } else if (url.startsWith('//')) {
+                    secureUrl = 'https:' + url;
+                } else if (!url.startsWith('http')) {
+                    // Relative URL - make it absolute with HTTPS
+                    secureUrl = window.location.origin + (url.startsWith('/') ? url : '/' + url);
+                }
+                
+                const playerOptions = {
+                    container: container,
+                    lang: 'ru',
+                    autoplay: false,
+                    theme: '#000000',
+                    loop: false,
+                    screenshot: true,
+                    hotkey: true,
+                    preload: 'metadata',
+                    volume: 0.7,
+                    mutex: true
+                };
+                
+                if (type === 'video') {
+                    playerOptions.video = {
+                        url: secureUrl,
+                        pic: secureUrl + (secureUrl.includes('?') ? '&' : '?') + 't=1'
+                    };
+                } else if (type === 'audio') {
+                    playerOptions.video = {
+                        url: secureUrl,
+                        pic: null
+                    };
+                }
+                
+                playerInstance = new DPlayer(playerOptions);
+                
+                // Make player responsive after initialization
+                setTimeout(() => {
+                    const playerElement = container.querySelector('.dplayer');
+                    if (playerElement) {
+                        playerElement.style.maxWidth = '100%';
+                        playerElement.style.maxHeight = '90vh';
+                        playerElement.style.width = '100%';
+                    }
+                }, 200);
+            }, 100);
+        }
+
+        async function uploadToTelegram(fileId, event) {
+            event.stopPropagation();
+            
+            const btn = event.target.closest('.telegram-btn');
+            const originalText = btn.innerHTML;
+            btn.disabled = true;
+            btn.innerHTML = '<i class="ph ph-circle-notch ph-spin"></i> Генерация ссылки...';
+
+            try {
+                const response = await fetch('/api/telegram/upload', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ file_id: fileId })
+                });
+
+                const data = await response.json();
+                
+                if (data.status === 'success' && data.bot_link) {
+                    // Открываем ссылку на бота
+                    window.open(data.bot_link, '_blank');
+                    btn.innerHTML = '<i class="ph-fill ph-check"></i> Открыто';
+                    btn.style.background = '#4caf50';
+                    setTimeout(() => {
+                        btn.innerHTML = originalText;
+                        btn.style.background = '';
+                        btn.disabled = false;
+                    }, 2000);
+                } else {
+                    showError(data.message || 'Ошибка генерации ссылки');
+                    btn.innerHTML = originalText;
+                    btn.disabled = false;
+                }
+            } catch (e) {
+                showError('Ошибка сети');
+                btn.innerHTML = originalText;
+                btn.disabled = false;
+            }
+        }
+
+        // Save history to localStorage
+        function saveHistoryToLocalStorage() {
+            try {
+                const response = fetch('/api/history').then(r => r.json());
+                response.then(data => {
+                    if (data.status === 'success') {
+                        localStorage.setItem('download_history', JSON.stringify(data.history));
+                    }
+                }).catch(e => console.error('Error saving history:', e));
+            } catch (e) {
+                console.error('Error saving history to localStorage:', e);
+            }
+        }
+
+        // Load history from localStorage and sync with server
+        async function loadHistory() {
+            try {
+                // First, try to load from localStorage for instant display
+                const localHistory = localStorage.getItem('download_history');
+                if (localHistory) {
+                    try {
+                        const parsed = JSON.parse(localHistory);
+                        if (parsed.length > 0) {
+                            displayHistory(parsed);
+                        }
+                    } catch (e) {
+                        console.error('Error parsing local history:', e);
+                    }
+                }
+                
+                // Then sync with server
+                const response = await fetch('/api/history');
+                const data = await response.json();
+                
+                if (data.status === 'success' && data.history.length > 0) {
+                    // Save to localStorage
+                    localStorage.setItem('download_history', JSON.stringify(data.history));
+                    displayHistory(data.history);
+                } else {
+                    // If server history is empty, clear local too
+                    if (data.history.length === 0) {
+                        localStorage.removeItem('download_history');
+                        historyList.innerHTML = '<div style="text-align: center; color: var(--text-secondary); padding: 20px; font-size: 14px;">История пуста</div>';
+                        clearHistoryBtn.style.display = 'none';
+                    }
+                }
+            } catch (e) {
+                console.error('Ошибка загрузки истории:', e);
+                // Fallback to localStorage if server fails
+                const localHistory = localStorage.getItem('download_history');
+                if (localHistory) {
+                    try {
+                        const parsed = JSON.parse(localHistory);
+                        if (parsed.length > 0) {
+                            displayHistory(parsed);
+                        }
+                    } catch (e) {
+                        console.error('Error parsing local history:', e);
+                    }
+                }
+            }
+        }
+
+        function displayHistory(history) {
+            if (history.length > 0) {
+                    historyList.innerHTML = '';
+                    clearHistoryBtn.style.display = 'block';
+                    
+                    history.forEach(item => {
+                        const historyItem = document.createElement('div');
+                        historyItem.className = 'history-item';
+                        historyItem.dataset.fileId = item.id;
+                        
+                        const isCarousel = item.is_carousel || (item.carousel_count && item.carousel_count > 1);
+                        const filename = item.filename || 'Неизвестный файл';
+                        const ext = filename.includes('.') ? filename.split('.').pop().toLowerCase() : 'file';
+                        const sizeMB = item.size > 0 ? (item.size / (1024 * 1024)).toFixed(2) : 'Кэш';
+                        const type = getFileType(filename);
+                        const mediaType = item.media_type || type;
+                        
+                        // Show URL if available (for cached files)
+                        const urlInfo = item.normalized_url || item.url || '';
+                        const urlDisplay = urlInfo.length > 50 ? urlInfo.substring(0, 50) + '...' : urlInfo;
+                        
+                        // Get preview URL - for carousel, try first file
+                        let previewUrl = item.url;
+                        if (isCarousel && item.carousel_files && item.carousel_files.length > 0) {
+                            previewUrl = item.carousel_files[0].url || item.url;
+                        }
+                        
+                        let previewHtml = '';
+                        if (item.is_cached || !previewUrl) {
+                            // Cached file or no URL - show icon
+                            if (isCarousel) {
+                                previewHtml = `<div class="history-item-preview" style="display: flex; align-items: center; justify-content: center; background: #e3f2fd; color: #0088cc; font-size: 32px;"><i class="ph-fill ph-images"></i></div>`;
+                            } else {
+                                previewHtml = `<div class="history-item-preview" style="display: flex; align-items: center; justify-content: center; background: #e3f2fd; color: #0088cc; font-size: 32px;"><i class="ph-fill ph-paper-plane-tilt"></i></div>`;
+                            }
+                        } else if (mediaType === 'photo' || type === 'video' || type === 'audio') {
+                            const securePreviewUrl = getPreviewUrl(previewUrl, type);
+                            if (securePreviewUrl) {
+                                previewHtml = `<img src="${securePreviewUrl}" class="history-item-preview" onerror="this.style.display='none'">`;
+                            }
+                        }
+                        
+                        const telegramBadge = item.telegram_file_id ? 
+                            '<span style="font-size: 10px; color: #0088cc; margin-left: 4px;">✓ TG</span>' : '';
+                        const cachedBadge = item.is_cached ? 
+                            '<span style="font-size: 10px; color: #4caf50; margin-left: 4px;">Кэш</span>' : '';
+                        const carouselBadge = isCarousel ? 
+                            `<span style="font-size: 10px; color: #9c27b0; margin-left: 4px;"><i class="ph ph-images"></i> ${item.carousel_count || ''}</span>` : '';
+                        
+                        historyItem.innerHTML = `
+                            <div class="history-item-header">
+                                <div class="history-item-name" title="${filename}">${filename}${telegramBadge}${cachedBadge}${carouselBadge}</div>
+                                <button class="history-item-delete" onclick="deleteHistoryItem('${item.id}', event)">
+                                    <i class="ph ph-trash"></i>
+                                </button>
+                            </div>
+                            <div class="history-item-meta">
+                                ${sizeMB} ${item.size > 0 ? 'МБ' : ''} • ${isCarousel ? `${item.carousel_count || ''} файлов` : ext.toUpperCase()}
+                                ${urlDisplay ? `<br><span style="font-size: 10px; color: var(--text-secondary);">${urlDisplay}</span>` : ''}
+                            </div>
+                            ${previewHtml}
+                        `;
+                        
+                        historyItem.addEventListener('click', (e) => {
+                            if (e.target.closest('.history-item-delete')) return;
+                            // If has bot_link, open bot instead of player
+                            if (item.bot_link) {
+                                window.open(item.bot_link, '_blank');
+                            } else if (previewUrl && !item.is_cached) {
+                                openPlayer(previewUrl, type);
+                            }
+                        });
+                        
+                        historyList.appendChild(historyItem);
+                    });
+                    clearHistoryBtn.style.display = 'block';
+                } else {
+                    historyList.innerHTML = '<div style="text-align: center; color: var(--text-secondary); padding: 20px; font-size: 14px;">История пуста</div>';
+                    clearHistoryBtn.style.display = 'none';
+                }
+        }
+
+        async function deleteHistoryItem(fileId, event) {
+            event.stopPropagation();
+            
+            try {
+                const response = await fetch(`/api/history/${fileId}`, {
+                    method: 'DELETE'
+                });
+                
+                if (response.ok) {
+                    saveHistoryToLocalStorage();
+                    loadHistory();
+                }
+            } catch (e) {
+                console.error('Ошибка удаления:', e);
+            }
+        }
+
+        clearHistoryBtn.addEventListener('click', async () => {
+            if (confirm('Очистить всю историю?')) {
+                try {
+                    const response = await fetch('/api/history', {
+                        method: 'DELETE'
+                    });
+                    if (response.ok) {
+                        localStorage.removeItem('download_history');
+                        loadHistory();
+                    }
+                } catch (e) {
+                    console.error('Ошибка очистки истории:', e);
+                }
+            }
+        });
+    </script>
+</body>
+</html>

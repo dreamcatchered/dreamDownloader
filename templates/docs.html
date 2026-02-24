@@ -1,0 +1,1899 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Документация API - Загрузчик</title>
+    <link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='90'>⬇️</text></svg>">
+    
+    <!-- Fonts: Inter -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    
+    <!-- Icons: Phosphor Icons -->
+    <script src="https://unpkg.com/@phosphor-icons/web"></script>
+    
+    <!-- Highlight.js for code -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.9.0/styles/github.min.css">
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.9.0/highlight.min.js"></script>
+
+    <style>
+        :root {
+            --bg-body: #ffffff;
+            --bg-sidebar: #f9f9f9;
+            --bg-code: #f6f8fa;
+            --text-main: #111111;
+            --text-secondary: #666666;
+            --border-color: #e5e5e5;
+            --shadow-sm: 0 1px 2px rgba(0,0,0,0.05);
+            --shadow-md: 0 4px 12px rgba(0,0,0,0.08);
+            --font-family: 'Inter', sans-serif;
+            --radius-md: 12px;
+            --accent-color: #000000;
+        }
+
+        * {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+        }
+
+        body {
+            font-family: var(--font-family);
+            background-color: var(--bg-body);
+            color: var(--text-main);
+            line-height: 1.6;
+        }
+
+        header {
+            height: 60px;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            padding: 0 24px;
+            border-bottom: 1px solid var(--border-color);
+            background: rgba(255, 255, 255, 0.8);
+            backdrop-filter: blur(10px);
+            position: sticky;
+            top: 0;
+            z-index: 10;
+        }
+
+        .logo {
+            font-weight: 700;
+            font-size: 18px;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            text-decoration: none;
+            color: var(--text-main);
+        }
+
+        .header-actions {
+            display: flex;
+            gap: 16px;
+            align-items: center;
+        }
+
+        .header-link {
+            color: var(--text-secondary);
+            text-decoration: none;
+            font-size: 14px;
+            transition: color 0.2s;
+        }
+
+        .header-link:hover {
+            color: var(--text-main);
+        }
+
+        .container {
+            max-width: 900px;
+            margin: 0 auto;
+            padding: 40px 24px;
+        }
+
+        .page-title {
+            font-size: 42px;
+            font-weight: 700;
+            margin-bottom: 12px;
+        }
+
+        .page-subtitle {
+            font-size: 18px;
+            color: var(--text-secondary);
+            margin-bottom: 48px;
+        }
+
+        .section {
+            margin-bottom: 48px;
+        }
+
+        .section-title {
+            font-size: 24px;
+            font-weight: 600;
+            margin-bottom: 16px;
+            padding-bottom: 8px;
+            border-bottom: 2px solid var(--border-color);
+        }
+
+        .endpoint {
+            background: var(--bg-code);
+            border: 1px solid var(--border-color);
+            border-radius: var(--radius-md);
+            padding: 20px;
+            margin-bottom: 24px;
+        }
+
+        .endpoint-header {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            margin-bottom: 16px;
+        }
+
+        .method-badge {
+            padding: 4px 12px;
+            border-radius: 4px;
+            font-weight: 600;
+            font-size: 13px;
+            font-family: 'Courier New', monospace;
+        }
+
+        .method-get { background: #d4edda; color: #155724; }
+        .method-post { background: #cce5ff; color: #004085; }
+        .method-delete { background: #f8d7da; color: #721c24; }
+
+        .endpoint-path {
+            font-family: 'Courier New', monospace;
+            font-size: 16px;
+            font-weight: 500;
+        }
+
+        .endpoint-description {
+            color: var(--text-secondary);
+            margin-bottom: 16px;
+        }
+
+        .params-title {
+            font-weight: 600;
+            margin: 16px 0 8px 0;
+            font-size: 14px;
+        }
+
+        .param-table-wrapper {
+            overflow-x: auto;
+            -webkit-overflow-scrolling: touch;
+            margin: 12px 0;
+            max-width: 100%;
+            width: 100%;
+        }
+
+        .param-table {
+            width: 100%;
+            border-collapse: collapse;
+            margin: 0;
+            min-width: 500px; /* Минимальная ширина для читаемости */
+            table-layout: auto;
+        }
+
+        .param-table th,
+        .param-table td {
+            padding: 8px 12px;
+            text-align: left;
+            border-bottom: 1px solid var(--border-color);
+            word-wrap: break-word;
+            overflow-wrap: break-word;
+        }
+
+        .param-table th {
+            font-weight: 600;
+            font-size: 13px;
+            color: var(--text-secondary);
+        }
+
+        .param-name {
+            font-family: 'Courier New', monospace;
+            font-weight: 500;
+        }
+
+        .code-block {
+            background: var(--bg-code);
+            border: 1px solid var(--border-color);
+            border-radius: var(--radius-md);
+            padding: 16px;
+            overflow-x: auto;
+            -webkit-overflow-scrolling: touch;
+            margin: 16px 0;
+            max-width: 100%;
+        }
+
+        .code-block pre {
+            margin: 0;
+            font-family: 'Courier New', monospace;
+            font-size: 14px;
+            word-wrap: break-word;
+            overflow-wrap: break-word;
+            white-space: pre-wrap;
+        }
+
+        .code-block code {
+            word-wrap: break-word;
+            overflow-wrap: break-word;
+            white-space: pre-wrap;
+        }
+
+        .response-example {
+            background: #f0f8ff;
+            border-left: 4px solid #0066cc;
+            padding: 16px;
+            border-radius: 4px;
+            margin: 16px 0;
+            overflow-x: auto;
+            -webkit-overflow-scrolling: touch;
+            max-width: 100%;
+        }
+
+        .response-example pre {
+            margin: 0;
+            font-family: 'Courier New', monospace;
+            font-size: 13px;
+            word-wrap: break-word;
+            overflow-wrap: break-word;
+            white-space: pre-wrap;
+        }
+
+        .response-example code {
+            word-wrap: break-word;
+            overflow-wrap: break-word;
+            white-space: pre-wrap;
+        }
+
+        .note {
+            background: #fff3cd;
+            border-left: 4px solid #ffc107;
+            padding: 12px 16px;
+            border-radius: 4px;
+            margin: 16px 0;
+            font-size: 14px;
+        }
+
+        /* Test Panel Styles */
+        .test-panel {
+            background: #f8f9fa;
+            border: 2px solid var(--border-color);
+            border-radius: var(--radius-md);
+            padding: 20px;
+            margin: 20px 0;
+        }
+
+        .test-panel-title {
+            font-size: 18px;
+            font-weight: 600;
+            margin-bottom: 16px;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+
+        .test-form {
+            display: flex;
+            flex-direction: column;
+            gap: 12px;
+        }
+
+        .test-form-row {
+            display: flex;
+            gap: 12px;
+            flex-wrap: wrap;
+        }
+
+        .test-form-row > * {
+            flex: 1;
+            min-width: 200px;
+        }
+
+        .test-input {
+            width: 100%;
+            padding: 10px 14px;
+            border: 1px solid var(--border-color);
+            border-radius: 8px;
+            font-family: var(--font-family);
+            font-size: 14px;
+            transition: border-color 0.2s;
+        }
+
+        .test-input:focus {
+            outline: none;
+            border-color: var(--accent-color);
+        }
+
+        .test-textarea {
+            width: 100%;
+            padding: 10px 14px;
+            border: 1px solid var(--border-color);
+            border-radius: 8px;
+            font-family: var(--font-family);
+            font-size: 14px;
+            min-height: 100px;
+            resize: vertical;
+            transition: border-color 0.2s;
+        }
+
+        .test-textarea:focus {
+            outline: none;
+            border-color: var(--accent-color);
+        }
+
+        .test-file-input {
+            width: 100%;
+            padding: 10px 14px;
+            border: 1px solid var(--border-color);
+            border-radius: 8px;
+            font-family: var(--font-family);
+            font-size: 14px;
+            background: white;
+            cursor: pointer;
+        }
+
+        .test-button {
+            padding: 10px 20px;
+            background: var(--accent-color);
+            color: white;
+            border: none;
+            border-radius: 8px;
+            font-family: var(--font-family);
+            font-size: 14px;
+            font-weight: 500;
+            cursor: pointer;
+            transition: background 0.2s, transform 0.1s;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 8px;
+        }
+
+        .test-button:hover:not(:disabled) {
+            background: #333;
+            transform: translateY(-1px);
+        }
+
+        .test-button:active:not(:disabled) {
+            transform: translateY(0);
+        }
+
+        .test-button:disabled {
+            background: #ccc;
+            cursor: not-allowed;
+            opacity: 0.6;
+        }
+
+        .test-result {
+            margin-top: 16px;
+            padding: 16px;
+            border-radius: 8px;
+            display: none;
+        }
+
+        .test-result.show {
+            display: block;
+        }
+
+        .test-result.success {
+            background: #d4edda;
+            border: 1px solid #c3e6cb;
+            color: #155724;
+        }
+
+        .test-result.error {
+            background: #f8d7da;
+            border: 1px solid #f5c6cb;
+            color: #721c24;
+        }
+
+        .test-result.loading {
+            background: #d1ecf1;
+            border: 1px solid #bee5eb;
+            color: #0c5460;
+        }
+
+        .test-result-title {
+            font-weight: 600;
+            margin-bottom: 8px;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+
+        .test-result-content {
+            font-family: 'Courier New', monospace;
+            font-size: 13px;
+            white-space: pre-wrap;
+            word-wrap: break-word;
+            max-height: 400px;
+            overflow-y: auto;
+            background: rgba(0,0,0,0.05);
+            padding: 12px;
+            border-radius: 4px;
+            margin-top: 8px;
+        }
+
+        .test-result-content a {
+            color: #0066cc;
+            text-decoration: underline;
+        }
+
+        .test-result-content a:hover {
+            color: #0052a3;
+        }
+
+        .loading-spinner {
+            display: inline-block;
+            width: 16px;
+            height: 16px;
+            border: 2px solid rgba(255,255,255,0.3);
+            border-top-color: white;
+            border-radius: 50%;
+            animation: spin 0.8s linear infinite;
+        }
+
+        @keyframes spin {
+            to { transform: rotate(360deg); }
+        }
+
+        .file-info {
+            background: rgba(255,255,255,0.5);
+            padding: 12px;
+            border-radius: 6px;
+            margin: 8px 0;
+        }
+
+        .file-info-item {
+            display: flex;
+            justify-content: space-between;
+            padding: 4px 0;
+            font-size: 13px;
+        }
+
+        .file-info-label {
+            font-weight: 500;
+        }
+
+        .history-item {
+            background: rgba(255,255,255,0.5);
+            padding: 12px;
+            border-radius: 6px;
+            margin: 8px 0;
+            border-left: 3px solid var(--accent-color);
+        }
+
+        .history-item-header {
+            font-weight: 600;
+            margin-bottom: 8px;
+        }
+
+        .history-item-details {
+            font-size: 12px;
+            color: var(--text-secondary);
+        }
+
+        .test-tabs {
+            display: flex;
+            gap: 8px;
+            margin-bottom: 16px;
+            border-bottom: 2px solid var(--border-color);
+        }
+
+        .test-tab {
+            padding: 8px 16px;
+            background: none;
+            border: none;
+            border-bottom: 2px solid transparent;
+            font-family: var(--font-family);
+            font-size: 14px;
+            font-weight: 500;
+            color: var(--text-secondary);
+            cursor: pointer;
+            transition: all 0.2s;
+            margin-bottom: -2px;
+        }
+
+        .test-tab:hover {
+            color: var(--text-main);
+        }
+
+        .test-tab.active {
+            color: var(--accent-color);
+            border-bottom-color: var(--accent-color);
+        }
+
+        .test-tab-content {
+            display: none;
+        }
+
+        .test-tab-content.active {
+            display: block;
+        }
+
+        @media (max-width: 768px) {
+            .page-title { font-size: 32px; }
+            .container { 
+                padding: 24px 16px;
+                max-width: 100%;
+                overflow-x: hidden;
+            }
+            
+            .endpoint {
+                padding: 16px;
+                overflow-x: hidden;
+                max-width: 100%;
+                box-sizing: border-box;
+            }
+            
+            .endpoint * {
+                max-width: 100%;
+            }
+            
+            .param-table-wrapper {
+                overflow-x: auto;
+                -webkit-overflow-scrolling: touch;
+                margin: 12px 0;
+                max-width: 100%;
+                width: 100%;
+                display: block;
+            }
+            
+            .param-table {
+                font-size: 11px;
+                min-width: 600px;
+                width: 100%;
+            }
+            
+            .param-table th,
+            .param-table td {
+                padding: 6px 8px;
+                white-space: normal;
+                word-wrap: break-word;
+                overflow-wrap: break-word;
+                vertical-align: top;
+            }
+            
+            .param-table th:first-child,
+            .param-table td:first-child {
+                min-width: 100px;
+                max-width: 120px;
+            }
+            
+            .param-table th:nth-child(2),
+            .param-table td:nth-child(2) {
+                min-width: 80px;
+                max-width: 100px;
+            }
+            
+            .param-table th:last-child,
+            .param-table td:last-child {
+                min-width: 200px;
+            }
+            
+            .param-table code {
+                font-size: 10px;
+                word-break: break-all;
+            }
+            
+            .code-block {
+                padding: 12px;
+                font-size: 12px;
+            }
+            
+            .code-block pre,
+            .code-block code {
+                font-size: 12px;
+            }
+            
+            .response-example {
+                padding: 12px;
+            }
+            
+            .response-example pre,
+            .response-example code {
+                font-size: 12px;
+            }
+            
+            .endpoint-path {
+                font-size: 14px;
+                word-break: break-all;
+            }
+            
+            body {
+                overflow-x: hidden;
+                width: 100%;
+            }
+
+            .test-form-row {
+                flex-direction: column;
+            }
+
+            .test-form-row > * {
+                min-width: 100%;
+            }
+
+            .test-button {
+                width: 100%;
+            }
+        }
+    </style>
+</head>
+<body>
+
+    <header>
+        <a href="/" class="logo">
+            <i class="ph-fill ph-download-simple"></i>
+            <span>Загрузчик</span>
+        </a>
+        <div class="header-actions">
+            <a href="/" class="header-link">Главная</a>
+            <button id="api-status-btn" class="header-link" style="background: none; border: none; cursor: pointer; padding: 0;">
+                <span id="api-status-text">Статус API</span>
+            </button>
+        </div>
+    </header>
+
+    <div class="container">
+        <h1 class="page-title">Документация API</h1>
+        <p class="page-subtitle">Полное руководство по использованию API Загрузчика</p>
+        
+        <div class="note" style="background: #e3f2fd; border-left-color: #1976d2; margin-bottom: 24px;">
+            <strong>🌐 Базовый URL API:</strong> <code>https://download.dreampartners.online</code><br>
+            Все запросы должны отправляться на этот домен.
+        </div>
+
+        <!-- Download Endpoint -->
+        <div class="section">
+            <h2 class="section-title">Загрузка Медиа</h2>
+            
+            <div class="endpoint">
+                <div class="endpoint-header">
+                    <span class="method-badge method-post">POST</span>
+                    <span class="endpoint-path">/download</span>
+                </div>
+                <div class="endpoint-description">
+                    Загрузка медиа с поддерживаемых платформ (YouTube, Instagram, TikTok, SoundCloud). 
+                    <strong>Важно:</strong> Файл автоматически загружается в Telegram группу для получения <code>telegram_file_id</code> и сохранения в кэш. 
+                    Если файл уже есть в кэше, возвращается информация из кэша без повторной загрузки.
+                </div>
+                
+                <div class="params-title">Полный URL эндпоинта:</div>
+                <div class="code-block">
+                    <pre><code>POST https://download.dreampartners.online/download</code></pre>
+                </div>
+
+                <div class="params-title">Request Body:</div>
+                <div class="param-table-wrapper">
+                    <table class="param-table">
+                        <thead>
+                            <tr>
+                                <th>Parameter</th>
+                                <th>Type</th>
+                                <th>Required</th>
+                                <th>Description</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            <tr>
+                                <td class="param-name">url</td>
+                                <td>string</td>
+                                <td>Yes</td>
+                                <td>URL of the media to download</td>
+                            </tr>
+                        </tbody>
+                    </table>
+                </div>
+
+                <div class="code-block">
+                    <pre><code class="language-json">{
+  "url": "https://youtube.com/watch?v=..."
+}</code></pre>
+                </div>
+
+                <div class="params-title">Response (Success - Новый файл):</div>
+                <div class="response-example">
+                    <pre><code>{
+  "status": "success",
+  "cached": false,
+  "files": [
+    {
+      "path": "downloads/uuid/video.mp4",
+      "filename": "video.mp4",
+      "url": "https://download.dreampartners.online/files/...",
+      "size": 1024000,
+      "telegram_file_id": "BAACAgIAAxkBAAI...",
+      "bot_link": "https://t.me/bot_username?start=file_123",
+      "cache_id": 123,
+      "normalized_url": "https://youtube.com/watch?v=...",
+      "media_type": "video"
+    }
+  ],
+  "task_id": "uuid",
+  "normalized_url": "https://youtube.com/watch?v=...",
+  "telegram_file_ids": ["BAACAgIAAxkBAAI..."],
+  "cache_id": 123
+}</code></pre>
+                </div>
+
+                <div class="params-title">Response (Error):</div>
+                <div class="response-example">
+                    <pre><code>{
+  "status": "error",
+  "message": "Error description"
+}</code></pre>
+                </div>
+
+                <!-- Test Panel -->
+                <div class="test-panel">
+                    <div class="test-panel-title">
+                        <i class="ph ph-flask"></i>
+                        <span>Тест API</span>
+                    </div>
+                    <form class="test-form" id="test-download-form">
+                        <div class="test-form-row">
+                            <input 
+                                type="url" 
+                                class="test-input" 
+                                id="test-download-url" 
+                                placeholder="Вставьте URL (YouTube, Instagram, TikTok, SoundCloud)"
+                                required
+                            />
+                            <button type="submit" class="test-button" id="test-download-btn">
+                                <span>Загрузить</span>
+                            </button>
+                        </div>
+                        <div class="test-result" id="test-download-result"></div>
+                    </form>
+                </div>
+            </div>
+        </div>
+
+        <!-- Transcribe Endpoint -->
+        <div class="section">
+            <h2 class="section-title">Transcribe Audio/Video</h2>
+            
+            <div class="endpoint">
+                <div class="endpoint-header">
+                    <span class="method-badge method-post">POST</span>
+                    <span class="endpoint-path">/transcribe</span>
+                </div>
+                <div class="endpoint-description">
+                    Convert speech to text from audio or video files. Can accept URL or file upload.
+                </div>
+
+                <div class="params-title">Option 1: URL (JSON):</div>
+                <div class="code-block">
+                    <pre><code class="language-json">{
+  "url": "https://youtube.com/watch?v=..."
+}</code></pre>
+                </div>
+
+                <div class="params-title">Option 2: File Upload (Multipart):</div>
+                <div class="code-block">
+                    <pre><code>Content-Type: multipart/form-data
+Field: file (binary)</code></pre>
+                </div>
+
+                <div class="params-title">Response:</div>
+                <div class="response-example">
+                    <pre><code>{
+  "status": "success",
+  "text": "Transcribed text here..."
+}</code></pre>
+                </div>
+
+                <div class="note">
+                    <strong>Note:</strong> Transcription uses Google Speech Recognition API. Supports Russian and English languages.
+                </div>
+
+                <!-- Test Panel -->
+                <div class="test-panel">
+                    <div class="test-panel-title">
+                        <i class="ph ph-flask"></i>
+                        <span>Тест API</span>
+                    </div>
+                    <form class="test-form" id="test-transcribe-form">
+                        <div style="margin-bottom: 12px;">
+                            <label style="display: block; margin-bottom: 8px; font-weight: 500;">Вариант 1: URL</label>
+                            <div class="test-form-row">
+                                <input 
+                                    type="url" 
+                                    class="test-input" 
+                                    id="test-transcribe-url" 
+                                    placeholder="Вставьте URL видео/аудио"
+                                />
+                                <button type="button" class="test-button" id="test-transcribe-url-btn">
+                                    <span>Расшифровать по URL</span>
+                                </button>
+                            </div>
+                        </div>
+                        <div>
+                            <label style="display: block; margin-bottom: 8px; font-weight: 500;">Вариант 2: Загрузка файла</label>
+                            <div class="test-form-row">
+                                <input 
+                                    type="file" 
+                                    class="test-file-input" 
+                                    id="test-transcribe-file" 
+                                    accept="audio/*,video/*"
+                                />
+                                <button type="button" class="test-button" id="test-transcribe-file-btn">
+                                    <span>Расшифровать файл</span>
+                                </button>
+                            </div>
+                        </div>
+                        <div class="test-result" id="test-transcribe-result"></div>
+                    </form>
+                </div>
+            </div>
+        </div>
+
+        <!-- Summary Endpoint -->
+        <div class="section">
+            <h2 class="section-title">Генерация Саммари</h2>
+            
+            <div class="endpoint">
+                <div class="endpoint-header">
+                    <span class="method-badge method-post">POST</span>
+                    <span class="endpoint-path">/summary</span>
+                </div>
+                <div class="endpoint-description">
+                    Генерация краткого саммари из расшифрованного текста с использованием AI.
+                </div>
+                
+                <div class="params-title">Полный URL эндпоинта:</div>
+                <div class="code-block">
+                    <pre><code>POST https://download.dreampartners.online/summary</code></pre>
+                </div>
+
+                <div class="params-title">Request Body:</div>
+                <div class="code-block">
+                    <pre><code class="language-json">{
+  "text": "Long text to summarize..."
+}</code></pre>
+                </div>
+
+                <div class="params-title">Response:</div>
+                <div class="response-example">
+                    <pre><code>{
+  "status": "success",
+  "summary": "1. Key point one\n2. Key point two..."
+}</code></pre>
+                </div>
+
+                <!-- Test Panel -->
+                <div class="test-panel">
+                    <div class="test-panel-title">
+                        <i class="ph ph-flask"></i>
+                        <span>Тест API</span>
+                    </div>
+                    <form class="test-form" id="test-summary-form">
+                        <div class="test-tabs">
+                            <button type="button" class="test-tab active" data-tab="text">Текст</button>
+                            <button type="button" class="test-tab" data-tab="url">URL</button>
+                            <button type="button" class="test-tab" data-tab="file">Файл</button>
+                        </div>
+                        
+                        <div class="test-tab-content active" id="test-summary-tab-text">
+                            <textarea 
+                                class="test-textarea" 
+                                id="test-summary-text" 
+                                placeholder="Вставьте текст для генерации саммари..."
+                            ></textarea>
+                        </div>
+                        
+                        <div class="test-tab-content" id="test-summary-tab-url">
+                            <input 
+                                type="url" 
+                                class="test-input" 
+                                id="test-summary-url" 
+                                placeholder="Вставьте URL видео/аудио для расшифровки и саммари"
+                            />
+                        </div>
+                        
+                        <div class="test-tab-content" id="test-summary-tab-file">
+                            <input 
+                                type="file" 
+                                class="test-file-input" 
+                                id="test-summary-file" 
+                                accept="audio/*,video/*"
+                            />
+                        </div>
+                        
+                        <button type="submit" class="test-button" id="test-summary-btn">
+                            <span>Сгенерировать саммари</span>
+                        </button>
+                        <div class="test-result" id="test-summary-result"></div>
+                    </form>
+                </div>
+            </div>
+        </div>
+
+        <!-- History Endpoints -->
+        <div class="section">
+            <h2 class="section-title">History Management</h2>
+            
+            <div class="endpoint">
+                <div class="endpoint-header">
+                    <span class="method-badge method-get">GET</span>
+                    <span class="endpoint-path">/api/history</span>
+                </div>
+                <div class="endpoint-description">
+                    Get download history for current session.
+                </div>
+
+                <div class="params-title">Response:</div>
+                <div class="response-example">
+                    <pre><code>{
+  "status": "success",
+  "history": [
+    {
+      "id": "uuid",
+      "filename": "video.mp4",
+      "url": "https://...",
+      "size": 1024000,
+      "added_at": "2025-01-20T10:00:00"
+    }
+  ]
+}</code></pre>
+                </div>
+
+                <!-- Test Panel -->
+                <div class="test-panel">
+                    <div class="test-panel-title">
+                        <i class="ph ph-flask"></i>
+                        <span>Тест API</span>
+                    </div>
+                    <div class="test-form">
+                        <button type="button" class="test-button" id="test-history-get-btn">
+                            <span>Получить историю</span>
+                        </button>
+                        <div class="test-result" id="test-history-result"></div>
+                    </div>
+                </div>
+            </div>
+
+            <div class="endpoint">
+                <div class="endpoint-header">
+                    <span class="method-badge method-delete">DELETE</span>
+                    <span class="endpoint-path">/api/history/{file_id}</span>
+                </div>
+                <div class="endpoint-description">
+                    Delete a file from history.
+                </div>
+
+                <div class="params-title">Response:</div>
+                <div class="response-example">
+                    <pre><code>{
+  "status": "success"
+}</code></pre>
+                </div>
+
+                <!-- Test Panel -->
+                <div class="test-panel">
+                    <div class="test-panel-title">
+                        <i class="ph ph-flask"></i>
+                        <span>Тест API</span>
+                    </div>
+                    <form class="test-form" id="test-history-delete-form">
+                        <div class="test-form-row">
+                            <input 
+                                type="text" 
+                                class="test-input" 
+                                id="test-history-delete-id" 
+                                placeholder="Введите file_id для удаления"
+                                required
+                            />
+                            <button type="submit" class="test-button" id="test-history-delete-btn">
+                                <span>Удалить из истории</span>
+                            </button>
+                        </div>
+                        <div class="test-result" id="test-history-delete-result"></div>
+                    </form>
+                </div>
+            </div>
+        </div>
+
+        <!-- Telegram Upload -->
+        <div class="section">
+            <h2 class="section-title">Загрузка в Telegram</h2>
+            
+            <div class="endpoint">
+                <div class="endpoint-header">
+                    <span class="method-badge method-post">POST</span>
+                    <span class="endpoint-path">/api/telegram/upload</span>
+                </div>
+                <div class="endpoint-description">
+                    Получить ссылку на бота для открытия файла. Файл загружается в Telegram, получает file_id и сохраняется в базу данных. Возвращается ссылка вида <code>https://t.me/bot_username?start=file_{cache_id}</code>
+                </div>
+
+                <div class="params-title">Request Body:</div>
+                <div class="code-block">
+                    <pre><code class="language-json">{
+  "file_id": "uuid-from-history"
+}</code></pre>
+                </div>
+
+                <div class="params-title">Response (Успех):</div>
+                <div class="response-example">
+                    <pre><code>{
+  "status": "success",
+  "bot_link": "https://t.me/bot_username?start=file_123",
+  "cache_id": 123,
+  "telegram_file_id": "BAACAgIAAxkBAAI...",
+  "message": "Используйте эту ссылку для открытия файла в боте"
+}</code></pre>
+                </div>
+
+                <div class="note">
+                    <strong>Примечание:</strong> Файл загружается в Telegram группу для получения <code>file_id</code>, затем сохраняется в базу данных. 
+                    При открытии ссылки бот покажет файл с опциями конвертации. Если файл уже загружен в Telegram, возвращается существующая ссылка без повторной загрузки.
+                </div>
+
+                <!-- Test Panel -->
+                <div class="test-panel">
+                    <div class="test-panel-title">
+                        <i class="ph ph-flask"></i>
+                        <span>Тест API</span>
+                    </div>
+                    <form class="test-form" id="test-telegram-upload-form">
+                        <div class="test-form-row">
+                            <input 
+                                type="text" 
+                                class="test-input" 
+                                id="test-telegram-upload-file-id" 
+                                placeholder="Введите file_id из истории"
+                                required
+                            />
+                            <button type="submit" class="test-button" id="test-telegram-upload-btn">
+                                <span>Загрузить в Telegram</span>
+                            </button>
+                        </div>
+                        <div class="test-result" id="test-telegram-upload-result"></div>
+                    </form>
+                </div>
+            </div>
+        </div>
+
+        <!-- Full Process Cycle -->
+        <div class="section">
+            <h2 class="section-title">Полный Цикл Обработки</h2>
+            
+            <div class="endpoint">
+                <div class="endpoint-header">
+                    <span class="method-badge method-post">POST</span>
+                    <span class="endpoint-path">/api/process</span>
+                </div>
+                <div class="endpoint-description">
+                    Полный цикл: Скачать → Расшифровать → Саммари. Выполняет все три операции последовательно.
+                </div>
+
+                <div class="params-title">Request Body:</div>
+                <div class="code-block">
+                    <pre><code class="language-json">{
+  "url": "https://youtube.com/watch?v=..."
+}</code></pre>
+                </div>
+
+                <div class="params-title">Response:</div>
+                <div class="response-example">
+                    <pre><code>{
+  "status": "success",
+  "file": {
+    "id": "uuid",
+    "filename": "video.mp4",
+    "url": "https://...",
+    "size": 1024000
+  },
+  "transcription": "Полный текст расшифровки...",
+  "summary": "1. Ключевой момент\n2. Второй момент..."
+}</code></pre>
+                </div>
+
+                <div class="note">
+                    <strong>Важно:</strong> Этот endpoint выполняет все три операции последовательно. Процесс может занять некоторое время в зависимости от размера файла.
+                </div>
+
+                <!-- Test Panel -->
+                <div class="test-panel">
+                    <div class="test-panel-title">
+                        <i class="ph ph-flask"></i>
+                        <span>Тест API</span>
+                    </div>
+                    <form class="test-form" id="test-process-form">
+                        <div class="test-form-row">
+                            <input 
+                                type="url" 
+                                class="test-input" 
+                                id="test-process-url" 
+                                placeholder="Вставьте URL для полной обработки"
+                                required
+                            />
+                            <button type="submit" class="test-button" id="test-process-btn">
+                                <span>Запустить полный цикл</span>
+                            </button>
+                        </div>
+                        <div class="test-result" id="test-process-result"></div>
+                    </form>
+                </div>
+            </div>
+        </div>
+
+        <!-- Health Check / Status -->
+        <div class="section">
+            <h2 class="section-title">Статус API</h2>
+            
+            <div class="endpoint">
+                <div class="endpoint-header">
+                    <span class="method-badge method-get">GET</span>
+                    <span class="endpoint-path">/health</span>
+                </div>
+                <div class="endpoint-description">
+                    Проверка статуса и доступности сервиса API. Используйте этот эндпоинт для мониторинга работоспособности сервиса.
+                </div>
+                
+                <div class="params-title">Полный URL эндпоинта:</div>
+                <div class="code-block">
+                    <pre><code>GET https://download.dreampartners.online/health</code></pre>
+                </div>
+
+                <div class="params-title">Ответ (Сервис онлайн):</div>
+                <div class="response-example">
+                    <pre><code>{
+  "status": "ok",
+  "service": "download-api"
+}</code></pre>
+                </div>
+
+                <div class="params-title">Коды ответов:</div>
+                <div class="param-table-wrapper">
+                    <table class="param-table">
+                        <thead>
+                            <tr>
+                                <th>Код</th>
+                                <th>Статус</th>
+                                <th>Описание</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            <tr>
+                                <td>200</td>
+                                <td>OK</td>
+                                <td>Сервис работает</td>
+                            </tr>
+                            <tr>
+                                <td>503</td>
+                                <td>Service Unavailable</td>
+                                <td>Сервис временно недоступен</td>
+                            </tr>
+                        </tbody>
+                    </table>
+                </div>
+
+                <div class="note">
+                    <strong>Совет:</strong> Используйте этот эндпоинт для проверок работоспособности и мониторинга. Возвращает 200 OK, когда сервис доступен.
+                </div>
+            </div>
+        </div>
+
+        <!-- Supported Platforms -->
+        <div class="section">
+            <h2 class="section-title">Supported Platforms</h2>
+            <ul style="list-style: none; padding: 0;">
+                <li style="padding: 8px 0;">✓ YouTube (youtube.com, youtu.be)</li>
+                <li style="padding: 8px 0;">✓ Instagram (instagram.com)</li>
+                <li style="padding: 8px 0;">✓ TikTok (tiktok.com, vt.tiktok.com)</li>
+                <li style="padding: 8px 0;">✓ SoundCloud (soundcloud.com)</li>
+            </ul>
+        </div>
+
+        <!-- Example Usage -->
+        <div class="section">
+            <h2 class="section-title">Example Usage</h2>
+            
+            <div class="code-block">
+                <pre><code class="language-javascript">// Базовый URL API
+const API_BASE_URL = 'https://download.dreampartners.online';
+
+// Download video
+const response = await fetch(`${API_BASE_URL}/download`, {
+  method: 'POST',
+  headers: {
+    'Content-Type': 'application/json'
+  },
+  body: JSON.stringify({
+    url: 'https://youtube.com/watch?v=...'
+  })
+});
+
+const data = await response.json();
+if (data.status === 'success') {
+  console.log('Files:', data.files);
+  console.log('Download URL:', data.files[0].url);
+  console.log('Telegram file_id:', data.files[0].telegram_file_id);
+  console.log('Bot link:', data.files[0].bot_link);
+}</code></pre>
+            </div>
+
+            <div class="code-block">
+                <pre><code class="language-python">import requests
+
+# Базовый URL API
+API_BASE_URL = 'https://download.dreampartners.online'
+
+# Download video
+response = requests.post(
+    f'{API_BASE_URL}/download',
+    json={'url': 'https://youtube.com/watch?v=...'}
+)
+
+data = response.json()
+if data['status'] == 'success':
+    print('Files:', data['files'])
+    print('Download URL:', data['files'][0]['url'])
+    print('Telegram file_id:', data['files'][0]['telegram_file_id'])
+    print('Bot link:', data['files'][0]['bot_link'])
+    print('Cache ID:', data.get('cache_id'))
+    print('Is carousel:', data.get('is_carousel', False))</code></pre>
+            </div>
+            
+            <div class="code-block">
+                <pre><code class="language-curl"># Пример запроса через cURL
+curl -X POST https://download.dreampartners.online/download \
+  -H "Content-Type: application/json" \
+  -d '{"url": "https://youtube.com/watch?v=..."}'
+
+# Проверка статуса API
+curl https://download.dreampartners.online/health</code></pre>
+            </div>
+        </div>
+
+        <!-- Кэширование -->
+        <div class="section">
+            <h2 class="section-title">Кэширование и Telegram File ID</h2>
+            
+            <div class="endpoint">
+                <div class="endpoint-description">
+                    <p>Сервис автоматически кэширует все загруженные файлы:</p>
+                    <ul style="margin: 16px 0; padding-left: 24px;">
+                        <li style="padding: 8px 0;"><strong>Автоматическая загрузка в Telegram:</strong> При загрузке файл сразу отправляется в Telegram группу для получения <code>telegram_file_id</code></li>
+                        <li style="padding: 8px 0;"><strong>Сохранение в кэш:</strong> URL нормализуется (убираются параметры, приводится к единому виду) и сохраняется в базу данных вместе с <code>file_id</code></li>
+                        <li style="padding: 8px 0;"><strong>Проверка кэша:</strong> Перед загрузкой проверяется наличие файла в кэше. Если найден - возвращается информация из кэша без повторной загрузки</li>
+                        <li style="padding: 8px 0;"><strong>Bot Deep Links:</strong> Для каждого файла генерируется ссылка вида <code>https://t.me/bot_username?start=file_{cache_id}</code>, которая открывает файл в боте с опциями конвертации</li>
+                    </ul>
+                </div>
+
+                <div class="params-title">Поля ответа при загрузке:</div>
+                <div class="param-table-wrapper">
+                    <table class="param-table">
+                        <thead>
+                            <tr>
+                                <th>Поле</th>
+                                <th>Тип</th>
+                                <th>Описание</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                        <tr>
+                            <td class="param-name">telegram_file_id</td>
+                            <td>string</td>
+                            <td>ID файла в Telegram (получается автоматически при загрузке)</td>
+                        </tr>
+                        <tr>
+                            <td class="param-name">bot_link</td>
+                            <td>string</td>
+                            <td>Ссылка для открытия файла в боте: <code>https://t.me/bot_username?start=file_{cache_id}</code></td>
+                        </tr>
+                        <tr>
+                            <td class="param-name">cache_id</td>
+                            <td>integer</td>
+                            <td>ID записи в кэше базы данных</td>
+                        </tr>
+                        <tr>
+                            <td class="param-name">normalized_url</td>
+                            <td>string</td>
+                            <td>Нормализованный URL (используется для проверки кэша)</td>
+                        </tr>
+                        <tr>
+                            <td class="param-name">media_type</td>
+                            <td>string</td>
+                            <td>Тип медиа: <code>video</code>, <code>audio</code>, <code>photo</code>, <code>document</code></td>
+                        </tr>
+                        <tr>
+                            <td class="param-name">cached</td>
+                            <td>boolean</td>
+                            <td><code>true</code> если файл взят из кэша, <code>false</code> если загружен заново</td>
+                        </tr>
+                    </tbody>
+                    </table>
+                </div>
+
+                <div class="note">
+                    <strong>Важно:</strong> Все файлы автоматически получают <code>telegram_file_id</code> при загрузке. 
+                    Это позволяет использовать файлы в Telegram боте без повторной загрузки. 
+                    Кэш работает на основе нормализованных URL, поэтому ссылки с разными параметрами (например, <code>?t=10</code>) считаются одинаковыми.
+                </div>
+            </div>
+        </div>
+
+    </div>
+
+    <script>
+        // Highlight code blocks
+        document.addEventListener('DOMContentLoaded', () => {
+            document.querySelectorAll('pre code').forEach((block) => {
+                hljs.highlightElement(block);
+            });
+        });
+
+        // API Status check
+        const statusBtn = document.getElementById('api-status-btn');
+        const statusText = document.getElementById('api-status-text');
+        
+        async function checkApiStatus() {
+            try {
+                const response = await fetch('/health');
+                if (response.ok) {
+                    statusText.textContent = '✓ API Онлайн';
+                    statusText.style.color = '#4caf50';
+                } else {
+                    statusText.textContent = '✗ API Офлайн';
+                    statusText.style.color = '#f44336';
+                }
+            } catch (e) {
+                statusText.textContent = '✗ API Офлайн';
+                statusText.style.color = '#f44336';
+            }
+        }
+
+        if (statusBtn) {
+            statusBtn.addEventListener('click', () => {
+                statusText.textContent = 'Проверка...';
+                statusText.style.color = '#666';
+                checkApiStatus();
+            });
+            // Не проверяем автоматически - только при нажатии кнопки
+        }
+
+        // API Base URL
+        const API_BASE_URL = 'https://download.dreampartners.online';
+
+        // Helper function to show result
+        function showResult(elementId, data, isError = false, isLoading = false) {
+            const resultEl = document.getElementById(elementId);
+            if (!resultEl) return;
+
+            resultEl.className = 'test-result show';
+            
+            if (isLoading) {
+                resultEl.className += ' loading';
+                resultEl.innerHTML = `
+                    <div class="test-result-title">
+                        <span class="loading-spinner"></span>
+                        <span>Обработка запроса...</span>
+                    </div>
+                `;
+                return;
+            }
+
+            if (isError) {
+                resultEl.className += ' error';
+                resultEl.innerHTML = `
+                    <div class="test-result-title">
+                        <i class="ph ph-x-circle"></i>
+                        <span>Ошибка</span>
+                    </div>
+                    <div class="test-result-content">${typeof data === 'string' ? data : JSON.stringify(data, null, 2)}</div>
+                `;
+            } else {
+                resultEl.className += ' success';
+                resultEl.innerHTML = `
+                    <div class="test-result-title">
+                        <i class="ph ph-check-circle"></i>
+                        <span>Успешно</span>
+                    </div>
+                    <div class="test-result-content">${typeof data === 'string' ? data : JSON.stringify(data, null, 2)}</div>
+                `;
+            }
+        }
+
+        // Helper function to format file size
+        function formatFileSize(bytes) {
+            if (!bytes) return 'N/A';
+            const k = 1024;
+            const sizes = ['Bytes', 'KB', 'MB', 'GB'];
+            const i = Math.floor(Math.log(bytes) / Math.log(k));
+            return Math.round(bytes / Math.pow(k, i) * 100) / 100 + ' ' + sizes[i];
+        }
+
+        // Download Test
+        const downloadForm = document.getElementById('test-download-form');
+        if (downloadForm) {
+            downloadForm.addEventListener('submit', async (e) => {
+                e.preventDefault();
+                const url = document.getElementById('test-download-url').value;
+                const btn = document.getElementById('test-download-btn');
+                
+                btn.disabled = true;
+                showResult('test-download-result', '', false, true);
+
+                try {
+                    const response = await fetch(`${API_BASE_URL}/download`, {
+                        method: 'POST',
+                        headers: { 'Content-Type': 'application/json' },
+                        body: JSON.stringify({ url })
+                    });
+
+                    const data = await response.json();
+                    
+                    if (data.status === 'success') {
+                        let resultHtml = JSON.stringify(data, null, 2);
+                        
+                        // Add formatted file info
+                        if (data.files && data.files.length > 0) {
+                            resultHtml += '\n\n📁 Информация о файлах:\n';
+                            data.files.forEach((file, idx) => {
+                                resultHtml += `\nФайл ${idx + 1}:\n`;
+                                resultHtml += `  • Имя: ${file.filename}\n`;
+                                resultHtml += `  • Размер: ${formatFileSize(file.size)}\n`;
+                                resultHtml += `  • Тип: ${file.media_type || 'N/A'}\n`;
+                                if (file.url) {
+                                    resultHtml += `  • Ссылка: ${file.url}\n`;
+                                }
+                                if (file.bot_link) {
+                                    resultHtml += `  • Bot Link: ${file.bot_link}\n`;
+                                }
+                                if (file.telegram_file_id) {
+                                    resultHtml += `  • Telegram File ID: ${file.telegram_file_id.substring(0, 30)}...\n`;
+                                }
+                                if (file.cache_id) {
+                                    resultHtml += `  • Cache ID: ${file.cache_id}\n`;
+                                }
+                            });
+                        }
+                        
+                        if (data.cached) {
+                            resultHtml += '\n\n✅ Файл взят из кэша';
+                        } else {
+                            resultHtml += '\n\n⬇️ Файл загружен заново';
+                        }
+
+                        showResult('test-download-result', resultHtml, false);
+                    } else {
+                        showResult('test-download-result', data, true);
+                    }
+                } catch (error) {
+                    showResult('test-download-result', `Ошибка: ${error.message}`, true);
+                } finally {
+                    btn.disabled = false;
+                }
+            });
+        }
+
+        // Transcribe Test - URL
+        const transcribeUrlBtn = document.getElementById('test-transcribe-url-btn');
+        if (transcribeUrlBtn) {
+            transcribeUrlBtn.addEventListener('click', async () => {
+                const url = document.getElementById('test-transcribe-url').value;
+                if (!url) {
+                    showResult('test-transcribe-result', 'Пожалуйста, введите URL', true);
+                    return;
+                }
+
+                transcribeUrlBtn.disabled = true;
+                showResult('test-transcribe-result', '', false, true);
+
+                try {
+                    const response = await fetch(`${API_BASE_URL}/transcribe`, {
+                        method: 'POST',
+                        headers: { 'Content-Type': 'application/json' },
+                        body: JSON.stringify({ url })
+                    });
+
+                    const data = await response.json();
+                    
+                    if (data.status === 'success') {
+                        let resultHtml = `Расшифрованный текст:\n\n${data.text || 'Текст не найден'}`;
+                        resultHtml += `\n\n${JSON.stringify(data, null, 2)}`;
+                        showResult('test-transcribe-result', resultHtml, false);
+                    } else {
+                        showResult('test-transcribe-result', data, true);
+                    }
+                } catch (error) {
+                    showResult('test-transcribe-result', `Ошибка: ${error.message}`, true);
+                } finally {
+                    transcribeUrlBtn.disabled = false;
+                }
+            });
+        }
+
+        // Transcribe Test - File
+        const transcribeFileBtn = document.getElementById('test-transcribe-file-btn');
+        if (transcribeFileBtn) {
+            transcribeFileBtn.addEventListener('click', async () => {
+                const fileInput = document.getElementById('test-transcribe-file');
+                const file = fileInput.files[0];
+                
+                if (!file) {
+                    showResult('test-transcribe-result', 'Пожалуйста, выберите файл', true);
+                    return;
+                }
+
+                transcribeFileBtn.disabled = true;
+                showResult('test-transcribe-result', '', false, true);
+
+                try {
+                    const formData = new FormData();
+                    formData.append('file', file);
+
+                    const response = await fetch(`${API_BASE_URL}/transcribe`, {
+                        method: 'POST',
+                        body: formData
+                    });
+
+                    const data = await response.json();
+                    
+                    if (data.status === 'success') {
+                        let resultHtml = `Расшифрованный текст:\n\n${data.text || 'Текст не найден'}`;
+                        resultHtml += `\n\n${JSON.stringify(data, null, 2)}`;
+                        showResult('test-transcribe-result', resultHtml, false);
+                    } else {
+                        showResult('test-transcribe-result', data, true);
+                    }
+                } catch (error) {
+                    showResult('test-transcribe-result', `Ошибка: ${error.message}`, true);
+                } finally {
+                    transcribeFileBtn.disabled = false;
+                }
+            });
+        }
+
+        // Summary Test - Tab switching
+        const summaryTabs = document.querySelectorAll('#test-summary-form .test-tab');
+        summaryTabs.forEach(tab => {
+            tab.addEventListener('click', () => {
+                const targetTab = tab.dataset.tab;
+                
+                // Remove active class from all tabs and contents
+                summaryTabs.forEach(t => t.classList.remove('active'));
+                document.querySelectorAll('#test-summary-form .test-tab-content').forEach(c => c.classList.remove('active'));
+                
+                // Add active class to clicked tab and corresponding content
+                tab.classList.add('active');
+                document.getElementById(`test-summary-tab-${targetTab}`).classList.add('active');
+            });
+        });
+
+        // Summary Test
+        const summaryForm = document.getElementById('test-summary-form');
+        if (summaryForm) {
+            summaryForm.addEventListener('submit', async (e) => {
+                e.preventDefault();
+                const btn = document.getElementById('test-summary-btn');
+                
+                // Determine active tab
+                const activeTab = document.querySelector('#test-summary-form .test-tab.active').dataset.tab;
+                let text = '';
+                let useTranscribe = false;
+                let transcribeUrl = null;
+                let transcribeFile = null;
+
+                if (activeTab === 'text') {
+                    text = document.getElementById('test-summary-text').value.trim();
+                    if (!text) {
+                        showResult('test-summary-result', 'Пожалуйста, введите текст', true);
+                        return;
+                    }
+                } else if (activeTab === 'url') {
+                    transcribeUrl = document.getElementById('test-summary-url').value.trim();
+                    if (!transcribeUrl) {
+                        showResult('test-summary-result', 'Пожалуйста, введите URL', true);
+                        return;
+                    }
+                    useTranscribe = true;
+                } else if (activeTab === 'file') {
+                    const fileInput = document.getElementById('test-summary-file');
+                    transcribeFile = fileInput.files[0];
+                    if (!transcribeFile) {
+                        showResult('test-summary-result', 'Пожалуйста, выберите файл', true);
+                        return;
+                    }
+                    useTranscribe = true;
+                }
+
+                btn.disabled = true;
+                showResult('test-summary-result', '', false, true);
+
+                try {
+                    // If URL or file, first transcribe, then summarize
+                    if (useTranscribe) {
+                        let transcriptionResponse;
+                        
+                        if (transcribeUrl) {
+                            // Transcribe from URL
+                            transcriptionResponse = await fetch(`${API_BASE_URL}/transcribe`, {
+                                method: 'POST',
+                                headers: { 'Content-Type': 'application/json' },
+                                body: JSON.stringify({ url: transcribeUrl })
+                            });
+                        } else if (transcribeFile) {
+                            // Transcribe from file
+                            const formData = new FormData();
+                            formData.append('file', transcribeFile);
+                            transcriptionResponse = await fetch(`${API_BASE_URL}/transcribe`, {
+                                method: 'POST',
+                                body: formData
+                            });
+                        }
+
+                        const transcriptionData = await transcriptionResponse.json();
+                        
+                        if (transcriptionData.status !== 'success' || !transcriptionData.text) {
+                            showResult('test-summary-result', `Ошибка расшифровки: ${transcriptionData.message || 'Не удалось расшифровать'}`, true);
+                            btn.disabled = false;
+                            return;
+                        }
+
+                        text = transcriptionData.text;
+                        showResult('test-summary-result', 'Расшифровка завершена. Генерация саммари...', false, true);
+                    }
+
+                    // Generate summary
+                    let summaryData = null;
+                    let summaryError = null;
+                    
+                    try {
+                        const response = await fetch(`${API_BASE_URL}/summary`, {
+                            method: 'POST',
+                            headers: { 'Content-Type': 'application/json' },
+                            body: JSON.stringify({ text })
+                        });
+                        summaryData = await response.json();
+                    } catch (error) {
+                        summaryError = error.message;
+                    }
+                    
+                    // Build result - show what we have even if summary failed
+                    let resultHtml = '';
+                    
+                    if (summaryData && summaryData.status === 'success' && summaryData.summary) {
+                        resultHtml += `✅ Саммари:\n\n${summaryData.summary}\n\n`;
+                    } else {
+                        resultHtml += `⚠️ Не удалось сгенерировать саммари`;
+                        if (summaryData && summaryData.message) {
+                            resultHtml += `: ${summaryData.message}`;
+                        } else if (summaryError) {
+                            resultHtml += `: ${summaryError}`;
+                        }
+                        resultHtml += `\n\n`;
+                    }
+                    
+                    // Always show transcription if we have it
+                    if (useTranscribe && text) {
+                        resultHtml += `📝 Расшифрованный текст:\n${text}\n\n`;
+                    } else if (!useTranscribe && text) {
+                        resultHtml += `📝 Исходный текст:\n${text.substring(0, 500)}${text.length > 500 ? '...' : ''}\n\n`;
+                    }
+                    
+                    // Show full response if available
+                    if (summaryData) {
+                        resultHtml += `Полный ответ API:\n${JSON.stringify(summaryData, null, 2)}`;
+                    }
+                    
+                    // Show as success if we have transcription, even if summary failed
+                    const hasContent = text && text.trim().length > 0;
+                    showResult('test-summary-result', resultHtml, !hasContent);
+                } catch (error) {
+                    showResult('test-summary-result', `Ошибка: ${error.message}`, true);
+                } finally {
+                    btn.disabled = false;
+                }
+            });
+        }
+
+        // History Get Test
+        const historyGetBtn = document.getElementById('test-history-get-btn');
+        if (historyGetBtn) {
+            historyGetBtn.addEventListener('click', async () => {
+                historyGetBtn.disabled = true;
+                showResult('test-history-result', '', false, true);
+
+                try {
+                    const response = await fetch(`${API_BASE_URL}/api/history`);
+                    const data = await response.json();
+                    
+                    if (data.status === 'success') {
+                        let resultHtml = '';
+                        if (data.history && data.history.length > 0) {
+                            resultHtml += `Найдено записей: ${data.history.length}\n\n`;
+                            data.history.forEach((item, idx) => {
+                                resultHtml += `Запись ${idx + 1}:\n`;
+                                resultHtml += `  • ID: ${item.id}\n`;
+                                resultHtml += `  • Файл: ${item.filename || 'N/A'}\n`;
+                                resultHtml += `  • Размер: ${formatFileSize(item.size)}\n`;
+                                resultHtml += `  • URL: ${item.url || 'N/A'}\n`;
+                                resultHtml += `  • Добавлено: ${item.added_at || 'N/A'}\n\n`;
+                            });
+                        } else {
+                            resultHtml = 'История пуста\n\n';
+                        }
+                        resultHtml += JSON.stringify(data, null, 2);
+                        showResult('test-history-result', resultHtml, false);
+                    } else {
+                        showResult('test-history-result', data, true);
+                    }
+                } catch (error) {
+                    showResult('test-history-result', `Ошибка: ${error.message}`, true);
+                } finally {
+                    historyGetBtn.disabled = false;
+                }
+            });
+        }
+
+        // History Delete Test
+        const historyDeleteForm = document.getElementById('test-history-delete-form');
+        if (historyDeleteForm) {
+            historyDeleteForm.addEventListener('submit', async (e) => {
+                e.preventDefault();
+                const fileId = document.getElementById('test-history-delete-id').value;
+                const btn = document.getElementById('test-history-delete-btn');
+                
+                btn.disabled = true;
+                showResult('test-history-delete-result', '', false, true);
+
+                try {
+                    const response = await fetch(`${API_BASE_URL}/api/history/${fileId}`, {
+                        method: 'DELETE'
+                    });
+
+                    const data = await response.json();
+                    
+                    if (data.status === 'success') {
+                        showResult('test-history-delete-result', `Файл ${fileId} успешно удален из истории\n\n${JSON.stringify(data, null, 2)}`, false);
+                    } else {
+                        showResult('test-history-delete-result', data, true);
+                    }
+                } catch (error) {
+                    showResult('test-history-delete-result', `Ошибка: ${error.message}`, true);
+                } finally {
+                    btn.disabled = false;
+                }
+            });
+        }
+
+        // Telegram Upload Test
+        const telegramUploadForm = document.getElementById('test-telegram-upload-form');
+        if (telegramUploadForm) {
+            telegramUploadForm.addEventListener('submit', async (e) => {
+                e.preventDefault();
+                const fileId = document.getElementById('test-telegram-upload-file-id').value;
+                const btn = document.getElementById('test-telegram-upload-btn');
+                
+                btn.disabled = true;
+                showResult('test-telegram-upload-result', '', false, true);
+
+                try {
+                    const response = await fetch(`${API_BASE_URL}/api/telegram/upload`, {
+                        method: 'POST',
+                        headers: { 'Content-Type': 'application/json' },
+                        body: JSON.stringify({ file_id: fileId })
+                    });
+
+                    const data = await response.json();
+                    
+                    if (data.status === 'success') {
+                        let resultHtml = '';
+                        if (data.bot_link) {
+                            resultHtml += `🔗 Bot Link: ${data.bot_link}\n\n`;
+                        }
+                        if (data.cache_id) {
+                            resultHtml += `📦 Cache ID: ${data.cache_id}\n\n`;
+                        }
+                        if (data.telegram_file_id) {
+                            resultHtml += `📎 Telegram File ID: ${data.telegram_file_id.substring(0, 30)}...\n\n`;
+                        }
+                        if (data.message) {
+                            resultHtml += `💬 ${data.message}\n\n`;
+                        }
+                        resultHtml += JSON.stringify(data, null, 2);
+                        showResult('test-telegram-upload-result', resultHtml, false);
+                    } else {
+                        showResult('test-telegram-upload-result', data, true);
+                    }
+                } catch (error) {
+                    showResult('test-telegram-upload-result', `Ошибка: ${error.message}`, true);
+                } finally {
+                    btn.disabled = false;
+                }
+            });
+        }
+
+        // Process Test (Full Cycle)
+        const processForm = document.getElementById('test-process-form');
+        if (processForm) {
+            processForm.addEventListener('submit', async (e) => {
+                e.preventDefault();
+                const url = document.getElementById('test-process-url').value;
+                const btn = document.getElementById('test-process-btn');
+                
+                btn.disabled = true;
+                showResult('test-process-result', 'Начало обработки... Это может занять некоторое время.\n\nЭтап 1: Загрузка файла...', false, true);
+
+                try {
+                    const response = await fetch(`${API_BASE_URL}/api/process`, {
+                        method: 'POST',
+                        headers: { 'Content-Type': 'application/json' },
+                        body: JSON.stringify({ url })
+                    });
+
+                    const data = await response.json();
+                    
+                    // Build result showing all available steps, even if some failed
+                    let resultHtml = '';
+                    let hasSuccess = false;
+                    let hasError = false;
+                    
+                    // Check if we have file (download step)
+                    if (data.file) {
+                        resultHtml += `✅ Файл загружен:\n`;
+                        resultHtml += `  • ID: ${data.file.id}\n`;
+                        resultHtml += `  • Имя: ${data.file.filename}\n`;
+                        resultHtml += `  • Размер: ${formatFileSize(data.file.size)}\n`;
+                        resultHtml += `  • URL: ${data.file.url}\n\n`;
+                        hasSuccess = true;
+                    }
+                    
+                    // Check if we have transcription
+                    if (data.transcription) {
+                        resultHtml += `✅ Расшифровка выполнена:\n${data.transcription.substring(0, 300)}${data.transcription.length > 300 ? '...' : ''}\n\n`;
+                        hasSuccess = true;
+                    }
+                    
+                    // Check if we have summary
+                    if (data.summary) {
+                        resultHtml += `✅ Саммари сгенерировано:\n${data.summary}\n\n`;
+                        hasSuccess = true;
+                    } else if (data.transcription) {
+                        // If we have transcription but no summary, it means summary failed
+                        resultHtml += `⚠️ Саммари не удалось сгенерировать`;
+                        if (data.summary_error) {
+                            resultHtml += `: ${data.summary_error}`;
+                        } else if (data.message && data.message.includes('summary')) {
+                            resultHtml += `: ${data.message}`;
+                        }
+                        resultHtml += `\n\n`;
+                        hasError = true;
+                    }
+                    
+                    // Show status
+                    if (data.status === 'success' || hasSuccess) {
+                        if (hasError) {
+                            resultHtml = `⚠️ Обработка завершена с предупреждениями\n\n${resultHtml}`;
+                        } else {
+                            resultHtml = `✅ Полный цикл обработки завершен!\n\n${resultHtml}`;
+                        }
+                    } else {
+                        resultHtml = `❌ Ошибка обработки\n\n${resultHtml}`;
+                    }
+                    
+                    // Show full response
+                    resultHtml += `\nПолный ответ API:\n${JSON.stringify(data, null, 2)}`;
+                    
+                    // Show as success if we have at least file or transcription
+                    showResult('test-process-result', resultHtml, !hasSuccess);
+                } catch (error) {
+                    showResult('test-process-result', `Ошибка: ${error.message}`, true);
+                } finally {
+                    btn.disabled = false;
+                }
+            });
+        }
+
+    </script>
+</body>
+</html>
+

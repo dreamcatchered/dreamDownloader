@@ -1,0 +1,45 @@
+# Python
+__pycache__/
+*.py[cod]
+*.pyo
+venv/
+env/
+.venv/
+
+# Environment
+.env
+
+# Databases
+*.db
+*.sqlite
+*.sqlite3
+instance/
+
+# Logs
+*.log
+
+# Sessions & auth
+*.session
+*.session-journal
+admin_sessions/
+sessions/
+
+# Uploads & temp
+uploads/
+temp_uploads/
+
+# Cookies
+*cookies.txt
+
+# Secrets & sensitive
+registration_results.json
+proxy_rules.json
+
+# OS
+.DS_Store
+Thumbs.db
+
+# IDE
+.idea/
+.vscode/
+
